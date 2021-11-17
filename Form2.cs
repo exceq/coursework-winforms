@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,7 +27,7 @@ namespace CourseworkWinforms
         public Form2()
         {
             InitializeComponent();
-            Image img = new Bitmap("..\\..\\..\\sources\\image.jpg");
+            Image img = new Bitmap("..\\..\\sources\\image.jpg");
             pictureBox1.Image = img;
             ZoomImage(img, 800);
             centerImg = new Point(pictureBox1.Image.Width / 2, pictureBox1.Image.Height / 2);
@@ -39,16 +39,21 @@ namespace CourseworkWinforms
         {
             bool hIsGreater = img.Height > img.Width;
             int greaterSide = hIsGreater ? img.Height : img.Width;
-            ratioSize = (float) maxSize / greaterSide;
-            pictureBox1.ClientSize = new Size((int) (img.Width * ratioSize), (int) (img.Height * ratioSize));
+            ratioSize = (float)maxSize / greaterSide;
+            pictureBox1.ClientSize = new Size((int)(img.Width * ratioSize), (int)(img.Height * ratioSize));
             angleOfPixel = viewAnlge / (hIsGreater ? pictureBox1.Height : pictureBox1.Width);
         }
 
         private void pictureBox1_Click(object sender, MouseEventArgs e)
         {
+            pictureBox1_MouseMove(sender, e);
+            DrawLineFromCenter((int)(e.X / ratioSize), (int)(e.Y / ratioSize));
+        }
+
+        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
+        {
             clickInfo.Text =
                 $"Height {pictureBox1.Height}\nWidth {pictureBox1.Width}\n\nMouse click:\nX: {e.X} Y: {e.Y}";
-            DrawLineFromCenter((int) (e.X / ratioSize), (int) (e.Y / ratioSize));
             var a = GetAngles(e.X, e.Y);
             anglesLabel.Text = $"Угол между X и Z: {a.horizontal}\nУгол между Y и Z: {a.vertical}";
         }
@@ -62,21 +67,19 @@ namespace CourseworkWinforms
 
             label2.Text = $"От центра:\nX: {fromCenter.X} Y: {fromCenter.Y}";
 
-            var angleVert = Math.Atan((double) 75/200) * 180 / Math.PI;
-            var angleHoriz = Math.Atan((double) 200/75) * 180 / Math.PI;
+            var ZfromY = GetAnotherCathetus(angles.vertical, fromCenter.Y);
+            var ZfromX = GetAnotherCathetus(angles.horizontal, fromCenter.X);
 
-            var radianVertical = angles.vertical * Math.PI / 180;
-            var radianHorizontal = angles.horizontal * Math.PI / 180;
-
-            var tanVert = Math.Tan(radianVertical);
-            var tanHoriz = Math.Tan(radianHorizontal);
-
-            var Z = fromCenter.Y / tanVert;
-            var Z1 = fromCenter.X / tanHoriz;
-
-            Vector3 directionVector = new Vector3(fromCenter.X, fromCenter.Y, (float)Z);
-            label1.Text = $"Z по X: {Z1}\nZ по Y: {Z}";
+            var directionVector = new Point<double>(fromCenter.X, fromCenter.Y, ZfromY);
+            label1.Text = $"Z по X: {ZfromX}\nZ по Y: {ZfromY}";
             return angles;
+        }
+
+        private double GetAnotherCathetus(double angleDegree, double knownCathetus)
+        {
+            var radian = angleDegree * Math.PI / 180;
+            var tangent = Math.Tan(radian);
+            return knownCathetus / tangent;
         }
 
         private void DrawLineFromCenter(int x, int y)
@@ -98,11 +101,6 @@ namespace CourseworkWinforms
 
             gr.DrawLine(pen, 0, centerImg.Y, centerImg.X * 2, centerImg.Y);
             gr.DrawLine(pen, centerImg.X, 0, centerImg.X, centerImg.Y * 2);
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

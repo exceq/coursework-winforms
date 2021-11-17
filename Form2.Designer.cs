@@ -1,4 +1,4 @@
-﻿
+
 namespace CourseworkWinforms
 {
     partial class Form2
@@ -40,57 +40,57 @@ namespace CourseworkWinforms
             // pictureBox1
             // 
             this.pictureBox1.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.pictureBox1.Location = new System.Drawing.Point(12, 12);
+            this.pictureBox1.Location = new System.Drawing.Point(10, 10);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(695, 565);
+            this.pictureBox1.Size = new System.Drawing.Size(596, 490);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             this.pictureBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_Click);
+            this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
             // 
             // clickInfo
             // 
             this.clickInfo.AutoSize = true;
-            this.clickInfo.Location = new System.Drawing.Point(765, 12);
+            this.clickInfo.Location = new System.Drawing.Point(656, 10);
             this.clickInfo.Name = "clickInfo";
-            this.clickInfo.Size = new System.Drawing.Size(57, 15);
+            this.clickInfo.Size = new System.Drawing.Size(51, 13);
             this.clickInfo.TabIndex = 1;
             this.clickInfo.Text = "Click Info";
             // 
             // anglesLabel
             // 
             this.anglesLabel.AutoSize = true;
-            this.anglesLabel.Location = new System.Drawing.Point(765, 179);
+            this.anglesLabel.Location = new System.Drawing.Point(656, 155);
             this.anglesLabel.Name = "anglesLabel";
-            this.anglesLabel.Size = new System.Drawing.Size(43, 15);
+            this.anglesLabel.Size = new System.Drawing.Size(39, 13);
             this.anglesLabel.TabIndex = 2;
             this.anglesLabel.Text = "Angles";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(765, 288);
+            this.label1.Location = new System.Drawing.Point(656, 250);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(38, 15);
+            this.label1.Size = new System.Drawing.Size(35, 13);
             this.label1.TabIndex = 3;
             this.label1.Text = "label1";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(765, 101);
+            this.label2.Location = new System.Drawing.Point(656, 88);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(38, 15);
+            this.label2.Size = new System.Drawing.Size(35, 13);
             this.label2.TabIndex = 4;
             this.label2.Text = "label2";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // Form2
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(873, 618);
+            this.ClientSize = new System.Drawing.Size(748, 536);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.anglesLabel);
@@ -101,7 +101,6 @@ namespace CourseworkWinforms
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
