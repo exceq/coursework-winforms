@@ -49,7 +49,7 @@ namespace CourseworkWinforms
                 pictureBox1.Image = null;
             }
 
-            PlyReader plyReader = new PlyReader("1.ply");
+            PlyReader plyReader = new PlyReader("..\\..\\..\\sources\\1.ply");
             Pen pen = new Pen(Color.Red, 1);
 
             Graphics gr = pictureBox1.CreateGraphics();

@@ -27,7 +27,7 @@ namespace CourseworkWinforms
         public Form2()
         {
             InitializeComponent();
-            Image img = new Bitmap("image.jpg");
+            Image img = new Bitmap("..\\..\\..\\sources\\image.jpg");
             pictureBox1.Image = img;
             ZoomImage(img, 800);
             centerImg = new Point(pictureBox1.Image.Width / 2, pictureBox1.Image.Height / 2);
