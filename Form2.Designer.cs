@@ -51,8 +51,10 @@ namespace CourseworkWinforms
             // 
             // clickInfo
             // 
+            this.clickInfo.AllowDrop = true;
+            this.clickInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.clickInfo.AutoSize = true;
-            this.clickInfo.Location = new System.Drawing.Point(656, 10);
+            this.clickInfo.Location = new System.Drawing.Point(692, 9);
             this.clickInfo.Name = "clickInfo";
             this.clickInfo.Size = new System.Drawing.Size(51, 13);
             this.clickInfo.TabIndex = 1;
@@ -60,8 +62,9 @@ namespace CourseworkWinforms
             // 
             // anglesLabel
             // 
+            this.anglesLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.anglesLabel.AutoSize = true;
-            this.anglesLabel.Location = new System.Drawing.Point(656, 155);
+            this.anglesLabel.Location = new System.Drawing.Point(692, 154);
             this.anglesLabel.Name = "anglesLabel";
             this.anglesLabel.Size = new System.Drawing.Size(39, 13);
             this.anglesLabel.TabIndex = 2;
@@ -69,8 +72,9 @@ namespace CourseworkWinforms
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(656, 250);
+            this.label1.Location = new System.Drawing.Point(692, 249);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(35, 13);
             this.label1.TabIndex = 3;
@@ -78,8 +82,9 @@ namespace CourseworkWinforms
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(656, 88);
+            this.label2.Location = new System.Drawing.Point(692, 87);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(35, 13);
             this.label2.TabIndex = 4;
@@ -90,7 +95,7 @@ namespace CourseworkWinforms
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(748, 536);
+            this.ClientSize = new System.Drawing.Size(864, 536);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.anglesLabel);

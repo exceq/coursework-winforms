@@ -22,6 +22,8 @@ namespace CourseworkWinforms
         private Point centerBox;
         private float ratioSize = 1f;
         private double viewAnlge = 73.8; // degrees
+        private int focusDistance = 6; // mm
+        private double mmPerPixel = 0.2767;
         private double angleOfPixel;
 
         public Form2()
@@ -41,7 +43,10 @@ namespace CourseworkWinforms
             int greaterSide = hIsGreater ? img.Height : img.Width;
             ratioSize = (float)maxSize / greaterSide;
             pictureBox1.ClientSize = new Size((int)(img.Width * ratioSize), (int)(img.Height * ratioSize));
-            angleOfPixel = viewAnlge / (hIsGreater ? pictureBox1.Height : pictureBox1.Width);
+            // angleOfPixel = viewAnlge / (hIsGreater ? pictureBox1.Height : pictureBox1.Width);
+            int a = pictureBox1.Height / 2;
+            int b = pictureBox1.Width / 2;
+            angleOfPixel = viewAnlge / Math.Sqrt(a * a + b * b);
         }
 
         private void pictureBox1_Click(object sender, MouseEventArgs e)
@@ -54,7 +59,8 @@ namespace CourseworkWinforms
         {
             clickInfo.Text =
                 $"Height {pictureBox1.Height}\nWidth {pictureBox1.Width}\n\nMouse click:\nX: {e.X} Y: {e.Y}";
-            var a = GetAngles(e.X, e.Y);
+            // var a = GetAngles(e.X, e.Y);
+            var a = GetAnglesByPhoto(e.X, e.Y, 6, 0.0007);
             anglesLabel.Text = $"Угол между X и Z: {a.horizontal}\nУгол между Y и Z: {a.vertical}";
         }
 
@@ -62,8 +68,10 @@ namespace CourseworkWinforms
         {
             Point fromCenter = new Point(x - centerBox.X, centerBox.Y - y);
             var angles = new Angles();
-            angles.horizontal = fromCenter.X * angleOfPixel;
-            angles.vertical = fromCenter.Y * angleOfPixel;
+            // angles.horizontal = fromCenter.X * angleOfPixel;
+            // angles.vertical = fromCenter.Y * angleOfPixel;
+            angles.horizontal = Math.Atan((fromCenter.X * mmPerPixel) / focusDistance) * 180 / Math.PI / 2;
+            angles.vertical = Math.Atan((fromCenter.Y * mmPerPixel) / focusDistance) * 180 / Math.PI / 2;
 
             label2.Text = $"От центра:\nX: {fromCenter.X} Y: {fromCenter.Y}";
 
@@ -73,6 +81,41 @@ namespace CourseworkWinforms
             var directionVector = new Point<double>(fromCenter.X, fromCenter.Y, ZfromY);
             label1.Text = $"Z по X: {ZfromX}\nZ по Y: {ZfromY}";
             return angles;
+        }
+
+        private Angles GetAnglesByPhoto(int x, int y, int focusDistance, double sizeOfPixel) // 0.0007 мм
+        {
+            double k = (double)pictureBox1.Image.Width / pictureBox1.Width;
+            Point fromCenter = new Point((int)(x * k) - centerImg.X, centerImg.Y - (int)(y * k));
+
+            var angles = new Angles();
+
+            angles.horizontal = Math.Atan(fromCenter.X * sizeOfPixel / focusDistance) * 180 / Math.PI;
+            angles.vertical = Math.Atan(fromCenter.Y * sizeOfPixel / focusDistance) * 180 / Math.PI;
+
+            label2.Text = $"От центра:\nX: {fromCenter.X} Y: {fromCenter.Y}";
+
+            var ZfromY = GetAnotherCathetus(angles.vertical, fromCenter.Y);
+            var ZfromX = GetAnotherCathetus(angles.horizontal, fromCenter.X);
+
+            var directionVector = NormalizeVector(new Point<double>(fromCenter.X, fromCenter.Y, ZfromY));
+            label1.Text = $"Z по X: {ZfromX}\nZ по Y: {ZfromY}" +
+                          "\n\nNormal vector: " +
+                          $"\nX: {directionVector.X}" +
+                          $"\nY: {directionVector.Y}" +
+                          $"\nZ: {directionVector.Z}";
+            return angles;
+        }
+
+        private Point<double> NormalizeVector(Point<double> vector)
+        {
+            var len = GetVectorLen(vector);
+            return new Point<double>(vector.X / len, vector.Y / len, vector.Z / len);
+        }
+
+        private double GetVectorLen(Point<double> vector)
+        {
+            return Math.Sqrt(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
         }
 
         private double GetAnotherCathetus(double angleDegree, double knownCathetus)
