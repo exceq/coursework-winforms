@@ -9,19 +9,20 @@ using Emgu.CV;
 using Emgu.CV.Util;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using System.Linq;
 
 namespace CourseworkWinforms
 {
     public partial class CamsViewer : Form
     {
-        private VideoCapture capture = null;
-        private DsDevice[] webCams = null;
+        private VideoCapture capture;
+        private DsDevice[] webCams;
         private int selectedCameraId = 0;
-        private Size imageSize;
 
         public CamsViewer()
         {
             InitializeComponent();
+            ZoomPictureBox();
         }
 
         // Загрузка формы
@@ -34,29 +35,21 @@ namespace CourseworkWinforms
             }
         }
 
-        private void ZoomPictureBox(Size imgSize)
+        private void ZoomPictureBox()
         {
-            //int greaterImgSide = GetGreater(imgSize.Height,imgSize.Width);
-            //int greaterFormSide = GetGreater(this.Height,this.Width);
-            //float ratioSize = (float)greaterFormSide / greaterImgSide;
-            //pictureBox1.ClientSize = new Size((int)(imgSize.Width * ratioSize), (int)(imgSize.Height * ratioSize));
-            int lowerImgSide = GetGreater(imgSize.Height,imgSize.Width);
-            var a = tableLayoutPanel2.GetColumnWidths();
-            var b = tableLayoutPanel2.GetRowHeights();
-            int lowerFormSide = GetLower(b[0],a[0]);
+            var k = (double)pictureBox1.Image.Width / pictureBox1.Image.Height;
+
+            var w = tableLayoutPanel2.GetColumnWidths()[0];
+            var h = tableLayoutPanel2.GetRowHeights()[0];
+
+            bool widthGreater = w > h * k;
+            var lowerImgSide = widthGreater ? pictureBox1.Image.Height : pictureBox1.Image.Width;
+            var lowerFormSide = widthGreater ? h : w;
 
             float ratioSize = (float)lowerFormSide / lowerImgSide;
-            pictureBox1.Size = new Size((int)(imgSize.Width * ratioSize), (int)(imgSize.Height * ratioSize));
-        }
-
-        private int GetGreater(int a, int b)
-        {
-            return a > b ? a : b;
-        }
-
-        private int GetLower(int a, int b)
-        {
-            return a < b ? a : b;
+            var newWidth = (int)(pictureBox1.Image.Width * ratioSize);
+            var newHeight = (int)(pictureBox1.Image.Height * ratioSize);
+            pictureBox1.ClientSize = new Size(newWidth, newHeight);
         }
 
         private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -68,13 +61,12 @@ namespace CourseworkWinforms
                 capture.ImageGrabbed += CaptureOnImageGrabbed;
                 capture.Start();
 
-                imageSize = new Size(capture.Width, capture.Height);
-                ZoomPictureBox(imageSize);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            ZoomPictureBox();
         }
 
         private void CaptureOnImageGrabbed(object sender, EventArgs e)
@@ -85,34 +77,41 @@ namespace CourseworkWinforms
                 capture.Retrieve(m);
                 pictureBox1.Image = m.ToImage<Bgr, byte>().ToBitmap();
             }
-            catch (InvalidOperationException ex) { }
+            catch (InvalidOperationException) { }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         
-        private Point[] points = new Point[30];
-        private int current = 0;
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             toolStripLabel2.Text = e.Location.ToString();
-
-            if (current == points.Length)
-                current = 0;
-            points[current] = e.Location;
-
-            label1.Text = string.Join("\n", points.Skip(current));
-            label1.Text += "\n"+string.Join("\n", points.Take(current));
-
-            current++;
-            //label1.Text = string.Join("\n", list.Take(40));
         }
 
         private void CamsViewer_Resize(object sender, EventArgs e)
         {
-            if (capture != null)
-                ZoomPictureBox(imageSize);
+            if (pictureBox1.Image != null)
+                ZoomPictureBox();
+        }
+
+        private void pictureBox1_Click(object sender, MouseEventArgs e)
+        {
+            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
+            var cameraPoint = new Point((int)(e.Location.X * k), (int)(e.Location.Y * k));
+            
+            var lvitem = new ListViewItem(cameraPoint.ToString());
+            lvitem.Tag = cameraPoint;
+            listView1.Items.Add(lvitem);
+            var a = GetSelectedPoints();
+        }
+
+        private List<Point> GetSelectedPoints()
+        {
+            var result = new List<Point>();
+            foreach (ListViewItem p in listView1.Items)
+                result.Add((Point)p.Tag);
+            return result;
         }
     }
 }
