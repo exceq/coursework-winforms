@@ -82,7 +82,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Resources\1.ply" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -103,15 +102,6 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\image.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\image2.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\big.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\image_sample.jpg" />
