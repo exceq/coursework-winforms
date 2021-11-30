@@ -12,9 +12,9 @@ namespace CourseworkWinforms
     {
         private VideoCapture capture;
         private DsDevice[] webCams;
-        private int selectedCameraId = 0;
+        private int selectedCameraId;
 
-        private bool firstCrop = true;
+        private bool firstCrop;
 
 
         public CamsViewer()
@@ -46,23 +46,6 @@ namespace CourseworkWinforms
             float ratioSize = (float)lowerFormSide / lowerImgSide;
             var newWidth = (int)(pictureBox1.Image.Width * ratioSize);
             var newHeight = (int)(pictureBox1.Image.Height * ratioSize);
-            pictureBox1.ClientSize = new Size(newWidth, newHeight);
-        }
-        
-        private void ZoomPictureBox(Bitmap img)
-        {
-            var k = (double)img.Width / img.Height;
-
-            var w = tableLayoutPanel2.GetColumnWidths()[0];
-            var h = tableLayoutPanel2.GetRowHeights()[0];
-
-            bool widthGreater = w > h * k;
-            var lowerImgSide = widthGreater ? img.Height : img.Width;
-            var lowerFormSide = widthGreater ? h : w;
-
-            float ratioSize = (float)lowerFormSide / lowerImgSide;
-            var newWidth = (int)(img.Width * ratioSize);
-            var newHeight = (int)(img.Height * ratioSize);
             pictureBox1.ClientSize = new Size(newWidth, newHeight);
         }
 
@@ -107,7 +90,7 @@ namespace CourseworkWinforms
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            toolStripLabel2.Text = e.Location.ToString();
+            toolStripLabel2.Text = PictureBoxPointToImagePoint(e.Location).ToString();
         }
 
         private void CamsViewer_Resize(object sender, EventArgs e)
@@ -118,16 +101,24 @@ namespace CourseworkWinforms
 
         private void pictureBox1_Click(object sender, MouseEventArgs e)
         {
-            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
-            var cameraPoint = new Point((int)(e.Location.X * k), (int)(e.Location.Y * k));
+            var imagePoint = PictureBoxPointToImagePoint(e.Location);
 
-            var lvitem = new ListViewItem(cameraPoint.ToString());
-            lvitem.Tag = cameraPoint;
+            var lvitem = new ListViewItem(imagePoint.ToString());
+            lvitem.Tag = imagePoint;
             listView1.Items.Add(lvitem);
             var a = GetSelectedPoints();
 
             AdjustButtons();
         }
+
+        private Point PictureBoxPointToImagePoint(Point pbPoint)
+        {
+            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
+            var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
+            return imagePoint;
+        }
+        
+        
 
         private IEnumerable<Point> GetSelectedPoints()
         {
@@ -139,8 +130,6 @@ namespace CourseworkWinforms
         {
             foreach (ListViewItem i in listView1.SelectedItems)
                 listView1.Items.Remove(i);
-            
-            AdjustButtons();
         }
 
         private void buttonDeleteAllItems_Click(object sender, EventArgs e)
@@ -163,7 +152,7 @@ namespace CourseworkWinforms
             buttonItemUp.Enabled = c == 1 && listView1.SelectedIndices[0] > 0;
             buttonItemDown.Enabled = c == 1 && listView1.SelectedIndices[0] < listView1.Items.Count - 1;
 
-            buttonDeleteAllItems.Enabled = c > 0;
+            buttonDeleteAllItems.Enabled = listView1.Items.Count > 0;
         }
 
         private void buttonItemUp_Click(object sender, EventArgs e)

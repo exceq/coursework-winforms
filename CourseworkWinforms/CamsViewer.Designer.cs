@@ -64,9 +64,10 @@ namespace CourseworkWinforms
             this.pictureBox1.BackColor = System.Drawing.SystemColors.ActiveBorder;
             this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Default;
             this.pictureBox1.Image = global::CourseworkWinforms.Properties.Resources.image_sample;
-            this.pictureBox1.Location = new System.Drawing.Point(3, 3);
+            this.pictureBox1.Location = new System.Drawing.Point(0, 0);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(650, 418);
+            this.pictureBox1.Size = new System.Drawing.Size(656, 426);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 2;
             this.pictureBox1.TabStop = false;
@@ -93,7 +94,7 @@ namespace CourseworkWinforms
             // toolStripComboBox1
             // 
             this.toolStripComboBox1.Name = "toolStripComboBox1";
-            this.toolStripComboBox1.Size = new System.Drawing.Size(121, 20);
+            this.toolStripComboBox1.Size = new System.Drawing.Size(130, 20);
             this.toolStripComboBox1.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox1_SelectedIndexChanged);
             // 
             // toolStripLabel2
@@ -301,9 +302,7 @@ namespace CourseworkWinforms
         }
 
         private System.Windows.Forms.Button buttonGo;
-
-        private System.Windows.Forms.Button button1;
-
+        
         private System.Windows.Forms.ListView listView1;
 
         private System.Windows.Forms.Button buttonDeleteAllItems;
