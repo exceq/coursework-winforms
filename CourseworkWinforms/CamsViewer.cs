@@ -271,7 +271,7 @@ namespace CourseworkWinforms
 
         private Frame GetFrameFromPoint(Point point)
         {
-            XMLReader xmlReader = new XMLReader();
+            XmlReader xmlReader = new XmlReader();
             var prop = xmlReader.GetCameraProperties(Resources.camera_properties_xml);
             // var prop = xmlReader.GetCameraProperties("..\\..\\..\\Resources\\camera_properties.xml");
             return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);

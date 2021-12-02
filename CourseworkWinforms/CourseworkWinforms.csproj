@@ -63,7 +63,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RobotState.cs" />
-    <Compile Include="XMLReader.cs" />
+    <Compile Include="XmlReader.cs" />
     <EmbeddedResource Include="CamsViewer.resx">
       <DependentUpon>CamsViewer.cs</DependentUpon>
     </EmbeddedResource>
