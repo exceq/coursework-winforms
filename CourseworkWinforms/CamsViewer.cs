@@ -52,6 +52,88 @@ namespace CourseworkWinforms
             pictureBox1.ClientSize = new Size(newWidth, newHeight);
         }
 
+        private void CaptureOnImageGrabbed(object sender, EventArgs e)
+        {
+            try
+            {
+                Mat m = new Mat();
+                capture.Retrieve(m);
+                var img = m.ToImage<Bgr, byte>().ToBitmap();
+                if (checkBoxPaintSelected.Checked)
+                    DrawPointOnImage(img);
+                pictureBox1.Image = img;
+
+                if (firstCrop)
+                {
+                    ZoomPictureBox();
+                    firstCrop = false;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+                MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        #region Drawing
+
+        Pen greenPen = new Pen(Color.GreenYellow, 3);
+        Pen bluePen = new Pen(Color.Blue, 3);
+
+        private void DrawPointOnImage(Bitmap img)
+        {
+            try
+            {
+                var gr = Graphics.FromImage(img);
+                int radius = 5;
+                for (var i = 0; i < listView1.Items.Count; i++)
+                {
+                    Point p = (Point)listView1.Items[i].Tag;
+                    if (listView1.Items.Count > 1 && i > 0)
+                    {
+                        Point pp = (Point)listView1.Items[i - 1].Tag;
+                        if (listView1.SelectedIndices.Contains(i) && listView1.SelectedIndices.Contains(i - 1))
+                            gr.DrawLine(bluePen, p.X, p.Y, pp.X, pp.Y);
+                        else
+                            gr.DrawLine(greenPen, p.X, p.Y, pp.X, pp.Y);
+                    }
+
+                    DrawCircle((i + 1).ToString(), greenPen, Brushes.GreenYellow, p, 5, gr);
+                }
+
+                for (var i = 0; i < listView1.SelectedIndices.Count; i++)
+                {
+                    int index = listView1.SelectedIndices[i];
+                    var p = (Point)listView1.Items[index].Tag;
+                    DrawCircle((index + 1).ToString(), bluePen, Brushes.Blue, p, 5, gr);
+                }
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
+        }
+
+        private void DrawCircle(string text, Pen pen, Brush brush, Point p, int radius, Graphics gr)
+        {
+            gr.DrawEllipse(pen, GetCircle(p, radius));
+            gr.DrawString(text, new Font("Arial", 14, FontStyle.Bold),
+                brush, new Point(p.X + radius, p.Y - radius));
+        }
+
+        private Rectangle GetCircle(Point p, int radius)
+        {
+            return new Rectangle(p.X - radius, p.Y - radius, radius * 2, radius * 2);
+        }
+
+        #endregion
+
+        #region Events
+
         private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             selectedCameraId = toolStripComboBox1.SelectedIndex;
@@ -61,31 +143,7 @@ namespace CourseworkWinforms
                 capture = new VideoCapture(selectedCameraId);
                 capture.ImageGrabbed += CaptureOnImageGrabbed;
                 capture.Start();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        
-        private void CaptureOnImageGrabbed(object sender, EventArgs e)
-        {
-            try
-            {
-                Mat m = new Mat();
-                capture.Retrieve(m);
-                var img = m.ToImage<Bgr, byte>().ToBitmap();
-                pictureBox1.Image = img;
-                
-                if (firstCrop)
-                {
-                    ZoomPictureBox();
-                    firstCrop = false;
-                }
-            }
-            catch (InvalidOperationException)
-            {
+                listView1.Clear();
             }
             catch (Exception ex)
             {
@@ -108,25 +166,11 @@ namespace CourseworkWinforms
         {
             var imagePoint = PictureBoxPointToImagePoint(e.Location);
 
-            var lvitem = new ListViewItem(imagePoint.ToString());
+            var lvitem = new ListViewItem($"{listView1.Items.Count + 1}. X: {imagePoint.X} Y: {imagePoint.Y}");
             lvitem.Tag = imagePoint;
             listView1.Items.Add(lvitem);
-            var a = GetSelectedPoints();
 
             AdjustButtons();
-        }
-
-        private Point PictureBoxPointToImagePoint(Point pbPoint)
-        {
-            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
-            var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
-            return imagePoint;
-        }
-
-        private IEnumerable<Point> GetSelectedPoints()
-        {
-            foreach (ListViewItem p in listView1.Items)
-                yield return (Point)p.Tag;
         }
 
         private void buttonItemDelete_Click(object sender, EventArgs e)
@@ -146,18 +190,6 @@ namespace CourseworkWinforms
             AdjustButtons();
         }
 
-        private void AdjustButtons()
-        {
-            var c = listView1.SelectedItems.Count;
-
-            buttonItemDelete.Enabled = c > 0;
-
-            buttonItemUp.Enabled = c == 1 && listView1.SelectedIndices[0] > 0;
-            buttonItemDown.Enabled = c == 1 && listView1.SelectedIndices[0] < listView1.Items.Count - 1;
-
-            buttonDeleteAllItems.Enabled = listView1.Items.Count > 0;
-        }
-
         private void buttonItemUp_Click(object sender, EventArgs e)
         {
             SwapItems(listView1.SelectedIndices[0], false);
@@ -166,19 +198,6 @@ namespace CourseworkWinforms
         private void buttonItemDown_Click(object sender, EventArgs e)
         {
             SwapItems(listView1.SelectedIndices[0], true);
-        }
-
-        private void SwapItems(int index, bool up)
-        {
-            int swapIndex = index + (up ? 1 : -1);
-
-            var item1 = listView1.Items[index];
-            listView1.Items[index].Remove();
-            listView1.Items.Insert(swapIndex, item1);
-            listView1.SelectedIndices.Clear();
-            item1.Focused = true;
-            item1.Selected = true;
-            listView1.Focus();
         }
 
         private void buttonGo_Click(object sender, EventArgs e)
@@ -207,6 +226,47 @@ namespace CourseworkWinforms
                 MessageBox.Show("Кнопка в разработке :)\n\n" + exception, "Dev", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
+        }
+
+        #endregion
+
+        private Point PictureBoxPointToImagePoint(Point pbPoint)
+        {
+            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
+            var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
+            return imagePoint;
+        }
+
+        private IEnumerable<Point> GetSelectedPoints()
+        {
+            foreach (ListViewItem p in listView1.Items)
+                yield return (Point)p.Tag;
+        }
+
+        private void AdjustButtons()
+        {
+            var c = listView1.SelectedItems.Count;
+
+            buttonItemDelete.Enabled = c > 0;
+
+            buttonItemUp.Enabled = c == 1 && listView1.SelectedIndices[0] > 0;
+            buttonItemDown.Enabled = c == 1 && listView1.SelectedIndices[0] < listView1.Items.Count - 1;
+
+
+            buttonDeleteAllItems.Enabled = listView1.Items.Count > 0;
+        }
+
+        private void SwapItems(int index, bool up)
+        {
+            int swapIndex = index + (up ? 1 : -1);
+
+            var item1 = listView1.Items[index];
+            listView1.Items[index].Remove();
+            listView1.Items.Insert(swapIndex, item1);
+            listView1.SelectedIndices.Clear();
+            item1.Focused = true;
+            item1.Selected = true;
+            listView1.Focus();
         }
 
         private Frame GetFrameFromPoint(Point point)
