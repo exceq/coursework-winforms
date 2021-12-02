@@ -89,7 +89,6 @@ namespace CourseworkWinforms
             try
             {
                 var gr = Graphics.FromImage(img);
-                int radius = 5;
                 for (var i = 0; i < listView1.Items.Count; i++)
                 {
                     Point p = (Point)listView1.Items[i].Tag;
@@ -112,7 +111,7 @@ namespace CourseworkWinforms
                     DrawCircle((index + 1).ToString(), bluePen, Brushes.Blue, p, 5, gr);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }
