@@ -19,10 +19,11 @@ namespace CourseworkWinforms
             float[] data = {};
             foreach (XmlNode child in node.ChildNodes)
                 if (child.Name == "data")
-                    data = child.InnerText.Split(' ').Select(float.Parse).ToArray();
-
-            Frame fr = new Frame(data[0], data[1], data[2], data[3], data[4], data[5]);
-            return fr;
+                    data = child.InnerText.Split()
+                        .Where(x=> x.Length>0)
+                        .Select(x=> float.Parse(x, CultureInfo.InvariantCulture))
+                        .ToArray();
+            return new Frame(data[0], data[1], data[2], data[3], data[4], data[5]);
         }
 
         private void GetMatrixParamsFromNode(out int r, out int c, out double[] data, XmlElement node)

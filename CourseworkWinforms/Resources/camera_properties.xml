@@ -31,10 +31,16 @@
 		-6.58748e+01 -1.24125e+02 1.051728e+02</data></T_camera>
 	<camera_pos type_id="frame">
 	  <data>
-		1 1 1 1 1 1</data></camera_pos>
+		  549.616455
+		  133.918228
+		  727.130798
+		  -95.1156082
+		  -2.42797804
+		  -0.0186264906</data></camera_pos>
 	<flange_position type_id="frame">
 	  <data>
-		1 1 1 1 1 1</data></flange_position>
+		  443.783 0.000338649 810.009
+		  -154.909 -0.789208 179.631</data></flange_position>
 	<focus type_id="double">
 	  <data>
 		1</data></focus>
