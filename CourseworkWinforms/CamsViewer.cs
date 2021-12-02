@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Text;
 using System.Windows.Forms;
+using CourseworkWinforms.Properties;
 using DirectShowLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -65,6 +68,7 @@ namespace CourseworkWinforms
             }
         }
 
+        
         private void CaptureOnImageGrabbed(object sender, EventArgs e)
         {
             try
@@ -73,8 +77,9 @@ namespace CourseworkWinforms
                 capture.Retrieve(m);
                 var img = m.ToImage<Bgr, byte>().ToBitmap();
                 pictureBox1.Image = img;
+                
                 if (firstCrop)
-                { 
+                {
                     ZoomPictureBox();
                     firstCrop = false;
                 }
@@ -117,8 +122,6 @@ namespace CourseworkWinforms
             var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
             return imagePoint;
         }
-        
-        
 
         private IEnumerable<Point> GetSelectedPoints()
         {
@@ -180,11 +183,38 @@ namespace CourseworkWinforms
 
         private void buttonGo_Click(object sender, EventArgs e)
         {
-            var points = GetSelectedPoints();
-            
-            //TODO Что-то связанное с pointToPixelLine
+            try
+            {
+                IEnumerable<Frame> points = GetSelectedPoints().Select(GetFrameFromPoint);
+                StringBuilder sb = new StringBuilder();
+                foreach (var p in points)
+                {
+                    sb.Append("X: " + p.X + "\n");
+                    sb.Append("Y: " + p.Y + "\n");
+                    sb.Append("Z: " + p.Z + "\n");
+                    sb.Append("A: " + p.A + "\n");
+                    sb.Append("B: " + p.B + "\n");
+                    sb.Append("C: " + p.C + "\n\n");
+                }
 
-            MessageBox.Show("Кнопка в разработке :)", "Dev", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // string output = string.Join("\n", points.Select(x => "X: " + x.X));
+                string output = sb.ToString();
+
+                MessageBox.Show(output, "Frames", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("Кнопка в разработке :)\n\n" + exception, "Dev", MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+        }
+
+        private Frame GetFrameFromPoint(Point point)
+        {
+            XMLReader xmlReader = new XMLReader();
+            var prop = xmlReader.GetCameraProperties(Resources.camera_properties_xml);
+            // var prop = xmlReader.GetCameraProperties("..\\..\\..\\Resources\\camera_properties.xml");
+            return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);
         }
     }
 }

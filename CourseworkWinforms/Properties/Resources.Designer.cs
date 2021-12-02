@@ -61,6 +61,15 @@ namespace CourseworkWinforms.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C:\Users\mrmis\RiderProjects\coursework-winforms\CourseworkWinforms\Resources\camera_properties.xml.
+        /// </summary>
+        internal static string camera_properties_xml {
+            get {
+                return ResourceManager.GetString("camera_properties.xml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap image_sample {
