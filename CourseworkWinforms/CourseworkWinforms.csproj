@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaumerCamera.cs" />
     <Compile Include="CameraMath.cs" />
     <Compile Include="CameraProperties.cs" />
     <Compile Include="CamsViewer.cs">
@@ -103,11 +104,15 @@
     <PackageReference Include="Emgu.CV.runtime.windows">
       <Version>4.5.4.4788</Version>
     </PackageReference>
+    <PackageReference Include="neoAPI">
+      <Version>1.1.1</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\big3000x2000.jpg" />
     <Content Include="Resources\camera_properties.xml" />
     <Content Include="Resources\image_sample.jpg" />
   </ItemGroup>
