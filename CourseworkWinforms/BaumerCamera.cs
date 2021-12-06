@@ -15,7 +15,7 @@ namespace CourseworkWinforms
         public BaumerCamera(string cameraPropertiesXmlPath)
         {
             Camera = new Cam();
-            Camera.Connect();
+            Camera = Camera.Connect();
             FeatureAccess f = new FeatureAccess(Camera);
             f.Width.Value = 1920;
             f.Height.Value = 1080;

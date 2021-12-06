@@ -32,9 +32,6 @@ namespace CourseworkWinforms
         private void InitializeComponent()
         {
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripLabelCameraName = new System.Windows.Forms.ToolStripLabel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
@@ -53,9 +50,14 @@ namespace CourseworkWinforms
             this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripLabelCameraName = new System.Windows.Forms.ToolStripLabel();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripButtonConnectBaumer = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonConnectCamera = new System.Windows.Forms.ToolStripButton();
+            this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            this.toolStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.tableLayoutPanel4.SuspendLayout();
@@ -63,6 +65,7 @@ namespace CourseworkWinforms
             this.tableLayoutPanel7.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
+            this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // pictureBox1
@@ -79,28 +82,6 @@ namespace CourseworkWinforms
             this.pictureBox1.TabStop = false;
             this.pictureBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_Click);
             this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseMove);
-            // 
-            // toolStrip1
-            // 
-            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.toolStripLabel1, this.toolStripLabelCameraName, this.toolStripLabel2 });
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(792, 20);
-            this.toolStrip1.TabIndex = 3;
-            this.toolStrip1.Text = "toolStrip1";
-            // 
-            // toolStripLabel1
-            // 
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(51, 17);
-            this.toolStripLabel1.Text = "Камера:";
-            // 
-            // toolStripLabelCameraName
-            // 
-            this.toolStripLabelCameraName.Name = "toolStripLabelCameraName";
-            this.toolStripLabelCameraName.Size = new System.Drawing.Size(0, 17);
             // 
             // panel1
             // 
@@ -224,6 +205,7 @@ namespace CourseworkWinforms
             // listView1
             // 
             this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listView1.HideSelection = false;
             this.listView1.Location = new System.Drawing.Point(0, 0);
             this.listView1.Margin = new System.Windows.Forms.Padding(0);
             this.listView1.Name = "listView1";
@@ -327,10 +309,55 @@ namespace CourseworkWinforms
             this.toolStripButton2.Size = new System.Drawing.Size(23, 23);
             this.toolStripButton2.Text = "toolStripButton2";
             // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(51, 17);
+            this.toolStripLabel1.Text = "Камера:";
+            // 
+            // toolStripLabelCameraName
+            // 
+            this.toolStripLabelCameraName.Name = "toolStripLabelCameraName";
+            this.toolStripLabelCameraName.Size = new System.Drawing.Size(0, 17);
+            // 
             // toolStripLabel2
             // 
             this.toolStripLabel2.Name = "toolStripLabel2";
             this.toolStripLabel2.Size = new System.Drawing.Size(0, 17);
+            // 
+            // toolStripButtonConnectBaumer
+            // 
+            this.toolStripButtonConnectBaumer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonConnectBaumer.Name = "toolStripButtonConnectBaumer";
+            this.toolStripButtonConnectBaumer.Size = new System.Drawing.Size(152, 17);
+            this.toolStripButtonConnectBaumer.Text = "Подключиться к баумеру";
+            this.toolStripButtonConnectBaumer.Click += new System.EventHandler(this.toolStripButtonConnectBaumer_Click);
+            // 
+            // toolStripButtonConnectCamera
+            // 
+            this.toolStripButtonConnectCamera.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonConnectCamera.Name = "toolStripButtonConnectCamera";
+            this.toolStripButtonConnectCamera.Size = new System.Drawing.Size(145, 17);
+            this.toolStripButtonConnectCamera.Text = "Подключиться к вебкам";
+            this.toolStripButtonConnectCamera.Click += new System.EventHandler(this.toolStripButtonConnectCamera_Click);
+            // 
+            // toolStripComboBox1
+            // 
+            this.toolStripComboBox1.Name = "toolStripComboBox1";
+            this.toolStripComboBox1.Size = new System.Drawing.Size(121, 20);
+            this.toolStripComboBox1.Visible = false;
+            this.toolStripComboBox1.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox1_SelectedIndexChanged);
+            // 
+            // toolStrip1
+            // 
+            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.toolStripLabel1, this.toolStripLabelCameraName, this.toolStripLabel2, this.toolStripButtonConnectBaumer, this.toolStripButtonConnectCamera, this.toolStripComboBox1 });
+            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(792, 20);
+            this.toolStrip1.TabIndex = 3;
+            this.toolStrip1.Text = "toolStrip1";
             // 
             // CamsViewer
             // 
@@ -341,11 +368,8 @@ namespace CourseworkWinforms
             this.MinimumSize = new System.Drawing.Size(468, 255);
             this.Name = "CamsViewer";
             this.Text = "CamsViewer";
-            this.Load += new System.EventHandler(this.CamsViewer_Load);
             this.Resize += new System.EventHandler(this.CamsViewer_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
             this.panel1.ResumeLayout(false);
             this.tableLayoutPanel3.ResumeLayout(false);
             this.tableLayoutPanel4.ResumeLayout(false);
@@ -355,8 +379,12 @@ namespace CourseworkWinforms
             this.tableLayoutPanel2.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
+            this.toolStrip1.ResumeLayout(false);
+            this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
         }
+
+        private System.Windows.Forms.ToolStripComboBox toolStripComboBox1;
 
         private System.Windows.Forms.ToolStripLabel toolStripLabel2;
 
@@ -396,5 +424,7 @@ namespace CourseworkWinforms
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.ToolStripButton toolStripButtonConnectBaumer;
+        private System.Windows.Forms.ToolStripButton toolStripButtonConnectCamera;
     }
 }

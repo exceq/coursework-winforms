@@ -21,6 +21,7 @@ Global
 		{2B618BF2-F06D-41F7-A123-E9CF4A0AD14E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2B618BF2-F06D-41F7-A123-E9CF4A0AD14E}.Release|x64.ActiveCfg = Release|x64
 		{2B618BF2-F06D-41F7-A123-E9CF4A0AD14E}.Release|x64.Build.0 = Release|x64
+		{2B618BF2-F06D-41F7-A123-E9CF4A0AD14E}.Release|x64.Deploy.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

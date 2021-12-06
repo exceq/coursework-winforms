@@ -1,15 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Windows.Forms;
 using CourseworkWinforms.Properties;
 using DirectShowLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using NeoAPI;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
 using Image = System.Drawing.Image;
 
 namespace CourseworkWinforms
@@ -18,8 +17,9 @@ namespace CourseworkWinforms
     {
         private DsDevice[] webCams;
         private VideoCapture capture;
-        
-        
+        private int selectedIndex;
+
+
         private BaumerCamera baumer;
         private bool firstCrop;
 
@@ -30,46 +30,51 @@ namespace CourseworkWinforms
             ZoomPictureBox();
         }
 
-        // Загрузка формы
-        private void CamsViewer_Load(object sender, EventArgs e)
-        {
-            ConnectToCamera();
-        }
+        #region Подключение к камерам
 
-        private void ConnectToCamera()
+        private void toolStripButtonConnectBaumer_Click(object sender, EventArgs e)
         {
             firstCrop = true;
             try
             {
                 ConnectToBaumer();
+                capture?.Stop();
             }
             catch (NotConnectedException exception)
             {
+                // baumer = null;
                 MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
                     "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                try
-                {
-                    ConnectToFirstWebCamera();
-                }
-                catch (ArgumentException e)
-                {
-                    MessageBox.Show(e.Message, "Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
             }
         }
 
-        private void ConnectToFirstWebCamera()
+        private void toolStripButtonConnectCamera_Click(object sender, EventArgs e)
+        {
+            firstCrop = true;
+            try
+            {
+                ConnectToWebCameras();
+                toolStripComboBox1.Visible = true;
+                toolStripButtonConnectCamera.Enabled = false;
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ConnectToWebCameras()
         {
             webCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
             if (webCams.Length == 0)
                 throw new ArgumentException("Не удалось подключиться к веб камерам.");
-            toolStripLabelCameraName.Text = webCams[0].Name;
-            capture = new VideoCapture();
-            capture.ImageGrabbed += OnImageReceivedFromWebCams;
-            capture.Start();
-            listView1.Clear();
+
+            foreach (var dsDevice in webCams) 
+                toolStripComboBox1.Items.Add(dsDevice.Name);
+
+            toolStripComboBox1.Visible = true;
+            toolStripButtonConnectCamera.Enabled = false;
         }
 
         private void ConnectToBaumer()
@@ -107,6 +112,8 @@ namespace CourseworkWinforms
             }
         }
 
+        #endregion
+
         private void ZoomPictureBox()
         {
             var k = (double)pictureBox1.Image.Width / pictureBox1.Image.Height;
@@ -121,7 +128,14 @@ namespace CourseworkWinforms
             float ratioSize = (float)lowerFormSide / lowerImgSide;
             var newWidth = (int)(pictureBox1.Image.Width * ratioSize);
             var newHeight = (int)(pictureBox1.Image.Height * ratioSize);
-            pictureBox1.ClientSize = new Size(newWidth, newHeight);
+            try
+            {
+                pictureBox1.ClientSize = new Size(newWidth, newHeight);
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
         }
 
 
@@ -189,7 +203,7 @@ namespace CourseworkWinforms
             listView1.Items.Add(lvitem);
 
             AdjustButtons();
-            
+
             //Рисование на статической картинке ограничено
             //потому что pictureBox не обновляется самостояельно
             if (firstCrop && checkBoxPaintSelected.Checked)
@@ -313,6 +327,22 @@ namespace CourseworkWinforms
             if (prop == null)
                 prop = new XmlReader().GetCameraProperties(Resources.camera_properties_xml);
             return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);
+        }
+
+        private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (baumer != null)
+                baumer.Camera.f.TriggerMode.Value = TriggerMode.Off;
+            
+            capture?.Stop();
+
+            selectedIndex = toolStripComboBox1.SelectedIndex;
+            
+            capture = new VideoCapture();
+            capture.ImageGrabbed += OnImageReceivedFromWebCams;
+            capture.Start();
+            listView1.Clear();
+            AdjustButtons();
         }
     }
 }
