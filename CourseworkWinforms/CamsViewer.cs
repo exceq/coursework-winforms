@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using CourseworkWinforms.Properties;
 using DirectShowLib;
@@ -32,44 +33,60 @@ namespace CourseworkWinforms
         // Загрузка формы
         private void CamsViewer_Load(object sender, EventArgs e)
         {
+            ConnectToCamera();
+        }
+
+        private void ConnectToCamera()
+        {
             firstCrop = true;
             try
             {
-                baumer = new BaumerCamera(Resources.camera_properties_xml);
-                baumer.Camera.f.TriggerMode.Value = TriggerMode.On;
-                baumer.Camera.f.TriggerSource.Value = TriggerSource.Software;
-                baumer.Camera.ImageCallback.Handler += OnImageReceived;
-
-                toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
+                ConnectToBaumer();
             }
             catch (NotConnectedException exception)
             {
-                MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception, 
+                MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
                     "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                webCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-                if (webCams.Length > 0)
+                try
                 {
-                    toolStripLabelCameraName.Text = webCams[0].Name;
-                    capture = new VideoCapture();
-                    capture.ImageGrabbed += OnImageReceivedFromWebCams;
-                    capture.Start();
-                    listView1.Clear();
+                    ConnectToFirstWebCamera();
                 }
-                else
+                catch (ArgumentException e)
                 {
-                    MessageBox.Show("Не удалось подключиться к вебкам.", "Error",
+                    MessageBox.Show(e.Message, "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void ConnectToFirstWebCamera()
+        {
+            webCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
+            if (webCams.Length == 0)
+                throw new ArgumentException("Не удалось подключиться к веб камерам.");
+            toolStripLabelCameraName.Text = webCams[0].Name;
+            capture = new VideoCapture();
+            capture.ImageGrabbed += OnImageReceivedFromWebCams;
+            capture.Start();
+            listView1.Clear();
+        }
+
+        private void ConnectToBaumer()
+        {
+            baumer = new BaumerCamera(Resources.camera_properties_xml);
+            baumer.Camera.f.TriggerMode.Value = TriggerMode.On;
+            baumer.Camera.f.TriggerSource.Value = TriggerSource.Software;
+            baumer.Camera.ImageCallback.Handler += OnImageReceived;
+
+            toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
         }
 
         private void OnImageReceivedFromWebCams(object sender, EventArgs e)
         {
             Mat m = new Mat();
             capture.Retrieve(m);
-            var img = m.ToImage<Bgr, byte>().ToBitmap();
-            SetImageToPictureBox(img);
+            SetImageToPictureBox(m.ToImage<Bgr, byte>().ToBitmap());
         }
 
         private void OnImageReceived(object sender, ImageEventArgs imageEventArgs)

@@ -17,9 +17,9 @@ namespace CourseworkWinforms
             Camera = new Cam();
             Camera.Connect();
             FeatureAccess f = new FeatureAccess(Camera);
-            f.Width.Value = 3072;
-            f.Height.Value = 2048;
-            f.ExposureTime.Value = 331042;
+            f.Width.Value = 1920;
+            f.Height.Value = 1080;
+            f.ExposureTime.Value = 331042.0;
             f.PixelFormat.Value = PixelFormat.BayerRG8; //Цветовое пространство
             f.BinningHorizontal.Value = 1; //уменьшение разрешения в 4 раза 
             f.BinningVertical.Value = 1; //уменьшение разрешения в 4 раза
@@ -35,8 +35,7 @@ namespace CourseworkWinforms
         {
             Mat img = new Mat((int)image.Height, (int)image.Width, DepthType.Cv8U, 3,
                 image.ImageData, 0);
-            Bitmap bitmap = img.ToImage<Bgr, byte>().ToBitmap();
-            return bitmap;
+            return img.ToImage<Bgr, byte>().ToBitmap();
         }
     }
 }
