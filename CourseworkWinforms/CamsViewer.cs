@@ -79,7 +79,7 @@ namespace CourseworkWinforms
 
         private void ConnectToBaumer()
         {
-            baumer = new BaumerCamera(Resources.camera_properties_xml);
+            baumer = new BaumerCamera(Resources.camera_properties);
             baumer.Camera.f.TriggerMode.Value = TriggerMode.On;
             baumer.Camera.f.TriggerSource.Value = TriggerSource.Software;
             baumer.Camera.ImageCallback.Handler += OnImageReceived;
@@ -325,7 +325,7 @@ namespace CourseworkWinforms
         {
             var prop = baumer?.CameraProperties;
             if (prop == null)
-                prop = new XmlReader().GetCameraProperties(Resources.camera_properties_xml);
+                prop = new XmlReader().GetCameraProperties(Resources.camera_properties);
             return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);
         }
 
