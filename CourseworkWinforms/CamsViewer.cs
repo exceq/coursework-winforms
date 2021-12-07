@@ -35,10 +35,22 @@ namespace CourseworkWinforms
         private void toolStripButtonConnectBaumer_Click(object sender, EventArgs e)
         {
             firstCrop = true;
+            string id = toolStripTextBox1.Text;
+            id = string.IsNullOrWhiteSpace(id) ? "" : id;
             try
             {
-                ConnectToBaumer();
-                capture?.Stop();
+                // Подключение к камере и получение первого кадра
+                baumer = new BaumerCamera(Resources.camera_properties, id);
+                var image = baumer.Camera.GetImage();
+                var bitmap = BaumerCamera.ConvertNeoImageToBitmap(image);
+                SetImageToPictureBox(bitmap);
+                
+                
+                //// Подключение к камере и обработка поступающих изображений
+                // ConnectToBaumer(id);
+                
+                
+                capture?.Stop(); // остановить запись с вебки, если была
             }
             catch (NotConnectedException exception)
             {
@@ -77,12 +89,15 @@ namespace CourseworkWinforms
             toolStripButtonConnectCamera.Enabled = false;
         }
 
-        private void ConnectToBaumer()
+        private void ConnectToBaumer(string id)
         {
-            baumer = new BaumerCamera(Resources.camera_properties);
+            baumer = new BaumerCamera(Resources.camera_properties, id);
+            
+            // Включение эвентов у камеры, чтобы получать изображения
+            // как только они поступают с камеры
             baumer.Camera.f.TriggerMode.Value = TriggerMode.On;
             baumer.Camera.f.TriggerSource.Value = TriggerSource.Software;
-            baumer.Camera.ImageCallback.Handler += OnImageReceived;
+            baumer.Camera.ImageCallback.Handler += OnImageReceived; // обработчик изображений
 
             toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
         }

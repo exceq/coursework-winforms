@@ -47,16 +47,17 @@ namespace CourseworkWinforms
             this.label1 = new System.Windows.Forms.Label();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
-            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripLabelCameraName = new System.Windows.Forms.ToolStripLabel();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripButtonConnectBaumer = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonConnectCamera = new System.Windows.Forms.ToolStripButton();
             this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
+            this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripTextBox1 = new System.Windows.Forms.ToolStripTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.panel1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
@@ -284,30 +285,16 @@ namespace CourseworkWinforms
             this.tableLayoutPanel1.Size = new System.Drawing.Size(792, 452);
             this.tableLayoutPanel1.TabIndex = 7;
             // 
-            // tableLayoutPanel5
+            // toolStrip1
             // 
-            this.tableLayoutPanel5.ColumnCount = 2;
-            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel5.Location = new System.Drawing.Point(0, 0);
-            this.tableLayoutPanel5.Margin = new System.Windows.Forms.Padding(0);
-            this.tableLayoutPanel5.Name = "tableLayoutPanel5";
-            this.tableLayoutPanel5.RowCount = 1;
-            this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel5.Size = new System.Drawing.Size(200, 100);
-            this.tableLayoutPanel5.TabIndex = 0;
-            // 
-            // toolStripButton1
-            // 
-            this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(23, 23);
-            this.toolStripButton1.Text = "toolStripButton1";
-            // 
-            // toolStripButton2
-            // 
-            this.toolStripButton2.Name = "toolStripButton2";
-            this.toolStripButton2.Size = new System.Drawing.Size(23, 23);
-            this.toolStripButton2.Text = "toolStripButton2";
+            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.toolStripLabel1, this.toolStripLabelCameraName, this.toolStripLabel2, this.toolStripTextBox1, this.toolStripButtonConnectBaumer, this.toolStripButtonConnectCamera, this.toolStripComboBox1 });
+            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip1.Name = "toolStrip1";
+            this.toolStrip1.Size = new System.Drawing.Size(792, 20);
+            this.toolStrip1.TabIndex = 3;
+            this.toolStrip1.Text = "toolStrip1";
             // 
             // toolStripLabel1
             // 
@@ -348,16 +335,35 @@ namespace CourseworkWinforms
             this.toolStripComboBox1.Visible = false;
             this.toolStripComboBox1.SelectedIndexChanged += new System.EventHandler(this.toolStripComboBox1_SelectedIndexChanged);
             // 
-            // toolStrip1
+            // tableLayoutPanel5
             // 
-            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.toolStripLabel1, this.toolStripLabelCameraName, this.toolStripLabel2, this.toolStripButtonConnectBaumer, this.toolStripButtonConnectCamera, this.toolStripComboBox1 });
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(792, 20);
-            this.toolStrip1.TabIndex = 3;
-            this.toolStrip1.Text = "toolStrip1";
+            this.tableLayoutPanel5.ColumnCount = 2;
+            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel5.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel5.Margin = new System.Windows.Forms.Padding(0);
+            this.tableLayoutPanel5.Name = "tableLayoutPanel5";
+            this.tableLayoutPanel5.RowCount = 1;
+            this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel5.Size = new System.Drawing.Size(200, 100);
+            this.tableLayoutPanel5.TabIndex = 0;
+            // 
+            // toolStripButton1
+            // 
+            this.toolStripButton1.Name = "toolStripButton1";
+            this.toolStripButton1.Size = new System.Drawing.Size(23, 23);
+            this.toolStripButton1.Text = "toolStripButton1";
+            // 
+            // toolStripButton2
+            // 
+            this.toolStripButton2.Name = "toolStripButton2";
+            this.toolStripButton2.Size = new System.Drawing.Size(23, 23);
+            this.toolStripButton2.Text = "toolStripButton2";
+            // 
+            // toolStripTextBox1
+            // 
+            this.toolStripTextBox1.Name = "toolStripTextBox1";
+            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 20);
             // 
             // CamsViewer
             // 
@@ -383,6 +389,8 @@ namespace CourseworkWinforms
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
         }
+
+        private System.Windows.Forms.ToolStripTextBox toolStripTextBox1;
 
         private System.Windows.Forms.ToolStripComboBox toolStripComboBox1;
 
