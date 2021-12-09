@@ -44,8 +44,9 @@ namespace CourseworkWinforms
         public static Bitmap ConvertNeoImageToBitmap(Image image)
         {
             // Возможно конвертация в bitmap неправильная
+            
             Mat img = new Mat((int)image.Height, (int)image.Width, DepthType.Cv8U, 3,
-                image.ImageData, 1);
+                image.ImageData, 0);
             return img.ToImage<Bgr, byte>().ToBitmap();
         }
     }

@@ -42,10 +42,22 @@ namespace CourseworkWinforms
                 // Подключение к камере и получение первого кадра
                 baumer = new BaumerCamera(Resources.camera_properties, id);
                 var image = baumer.Camera.GetImage();
-                var bitmap = BaumerCamera.ConvertNeoImageToBitmap(image);
-                SetImageToPictureBox(bitmap);
-                
-                
+
+                try
+                {
+                    var bitmap = BaumerCamera.ConvertNeoImageToBitmap(image);
+                    SetImageToPictureBox(bitmap);
+                }
+                catch (Exception exception)
+                {
+                    MessageBox.Show("Не удалось сконвертировать изображение.\n\nПодробности:\n" + exception,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                if (baumer.Camera.IsConnected)
+                    toolStripButtonConnectBaumer.Enabled = false;
+
+
                 //// Подключение к камере и обработка поступающих изображений
                 // ConnectToBaumer(id);
                 
