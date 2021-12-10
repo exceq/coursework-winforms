@@ -39,36 +39,38 @@ namespace CourseworkWinforms
             id = string.IsNullOrWhiteSpace(id) ? "" : id;
             try
             {
-                // Подключение к камере и получение первого кадра
                 baumer = new BaumerCamera(Resources.camera_properties, id);
-                var image = baumer.Camera.GetImage();
-
-                try
-                {
-                    var bitmap = BaumerCamera.ConvertNeoImageToBitmap(image);
-                    SetImageToPictureBox(bitmap);
-                }
-                catch (Exception exception)
-                {
-                    MessageBox.Show("Не удалось сконвертировать изображение.\n\nПодробности:\n" + exception,
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
+                
                 if (baumer.Camera.IsConnected)
                     toolStripButtonConnectBaumer.Enabled = false;
-
-
+                
                 //// Подключение к камере и обработка поступающих изображений
                 // ConnectToBaumer(id);
-                
-                
-                capture?.Stop(); // остановить запись с вебки, если была
+                capture?.Stop();
             }
             catch (NotConnectedException exception)
             {
-                // baumer = null;
                 MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
                     "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            
+            var neoImage = baumer.Camera.GetImage();
+            for (int i = 0; ; i++)
+            {
+                try
+                {
+                    toolStripLabel1.Text = "step: " + i;
+                        
+                    var bitmap = BaumerCamera.ConvertNeoImageToBitmap(neoImage, i);
+                        
+                    SetImageToPictureBox(bitmap);
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    // MessageBox.Show("Не удалось сконвертировать изображение.\n\nПодробности:\n" + exception,
+                    //     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

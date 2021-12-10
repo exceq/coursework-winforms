@@ -11,6 +11,7 @@ namespace CourseworkWinforms
     public class BaumerCamera
     {
         public Cam Camera { get; }
+
         public CameraProperties CameraProperties { get; }
 
         public BaumerCamera(string cameraPropertiesXml, string identifier = "")
@@ -25,8 +26,8 @@ namespace CourseworkWinforms
             // camera.Connect("VCXU-23M");     // connect to a camera with the name VCXU-23M
             // camera.Connect("700004105902"); // connect to the camera with the specified serial number
             // camera.Connect("P10-2");        // connect to the camera on the specified USB port
-            
-            
+
+
             FeatureAccess f = new FeatureAccess(Camera);
             f.Width.Value = 1920;
             f.Height.Value = 1080;
@@ -42,28 +43,11 @@ namespace CourseworkWinforms
             CameraProperties = new XmlReader().GetCameraProperties(cameraPropertiesXml);
         }
 
-        public static Bitmap ConvertNeoImageToBitmap(Image image)
+        public static Bitmap ConvertNeoImageToBitmap(Image image, int step = 0)
         {
-            // #define 	CV_AUTO_STEP   0x7fffffff
-            // #define 	CV_AUTOSTEP   0x7fffffff
-            // это написано в доках к open cv https://docs.opencv.org/3.4/d2/df8/group__core__c.html
-            // это число = 2147483647 = Int32.MaxValue
-            // Так что можно попробовать варинант ниже, где step = Int32.MaxValue
-            
-            // Mat img = new Mat((int)image.Height, (int)image.Width, DepthType.Cv8U, 3,
-            //     image.ImageData, Int32.MaxValue);
-            
-            //Можно ещё попробовать через Matrix - это обертка над Mat, и не требует step
-            Matrix<int> img = new Matrix<int>((int)image.Height, (int)image.Width,
-                image.ImageData);
-
-            // ага блин тут хоть и не указываешь step, но вызывается все равно со значением = 0
-            // public Matrix(int rows, int cols, IntPtr data)
-            //     : this(rows, cols, data, 0)
-            // {
-            // }
-
-            return img.Mat.ToImage<Bgr, byte>().ToBitmap();
+            Mat img = new Mat((int)image.Height, (int)image.Width, DepthType.Cv8U, 3,
+                image.ImageData, step);
+            return img.ToImage<Bgr, byte>().ToBitmap();
         }
     }
 }
