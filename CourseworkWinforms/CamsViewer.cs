@@ -39,38 +39,15 @@ namespace CourseworkWinforms
             id = string.IsNullOrWhiteSpace(id) ? "" : id;
             try
             {
-                baumer = new BaumerCamera(Resources.camera_properties, id);
-                
-                if (baumer.Camera.IsConnected)
-                    toolStripButtonConnectBaumer.Enabled = false;
-                
-                //// Подключение к камере и обработка поступающих изображений
                 // ConnectToBaumer(id);
+                ConnectToBaumerButWhileTrue(id);
+
                 capture?.Stop();
             }
             catch (NotConnectedException exception)
             {
                 MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
                     "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            
-            var neoImage = baumer.Camera.GetImage();
-            for (int i = 0; ; i++)
-            {
-                try
-                {
-                    toolStripLabel1.Text = "step: " + i;
-                        
-                    var bitmap = BaumerCamera.ConvertNeoImageToBitmap(neoImage, i);
-                        
-                    SetImageToPictureBox(bitmap);
-                    break;
-                }
-                catch (Exception exception)
-                {
-                    // MessageBox.Show("Не удалось сконвертировать изображение.\n\nПодробности:\n" + exception,
-                    //     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
             }
         }
 
@@ -96,22 +73,59 @@ namespace CourseworkWinforms
             if (webCams.Length == 0)
                 throw new ArgumentException("Не удалось подключиться к веб камерам.");
 
-            foreach (var dsDevice in webCams) 
+            foreach (var dsDevice in webCams)
                 toolStripComboBox1.Items.Add(dsDevice.Name);
 
             toolStripComboBox1.Visible = true;
             toolStripButtonConnectCamera.Enabled = false;
         }
 
-        private void ConnectToBaumer(string id)
+        private void ConnectToBaumerButWhileTrue(string id = "")
         {
             baumer = new BaumerCamera(Resources.camera_properties, id);
-            
+            int i = 1;
+            while (baumer.Camera.IsConnected)
+            {
+                Bitmap bitmap = null;
+                try
+                {
+                    bitmap = BaumerCamera.ConvertNeoImageToBitmap(baumer.Camera.GetImage());
+                }
+                catch (Exception e)
+                {
+                    // MessageBox.Show("Не удалось сконвертировать изображение.\n\nПодробности:\n" + e,
+                    //     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    toolStripTextBox1.Text = "Ошибка " + i++; // Чтобы в случае чего не было слишком много мессаджей
+                }
+
+                if (bitmap != null)
+                    SetImageToPictureBox(bitmap);
+            }
+        }
+
+        private void ConnectToBaumer(string id = "")
+        {
+            baumer = new BaumerCamera(Resources.camera_properties, id);
+
             // Включение эвентов у камеры, чтобы получать изображения
             // как только они поступают с камеры
             baumer.Camera.f.TriggerMode.Value = TriggerMode.On;
             baumer.Camera.f.TriggerSource.Value = TriggerSource.Software;
             baumer.Camera.ImageCallback.Handler += OnImageReceived; // обработчик изображений
+
+            baumer.Camera.EnableImageCallback();
+
+            if (baumer.Camera.IsConnected)
+                toolStripButtonConnectBaumer.Enabled = false;
+
+            for (int i = 0; i < 5; i++) // send 5 triggers to trigger some image callbacks
+            {
+                baumer.Camera.f.TriggerSoftware.Execute();
+                System.Threading.Thread.Sleep(100);
+            }
+
+            baumer.Camera.DisableImageCallback(); // disable callback
+            baumer.Camera.Dispose();
 
             toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
         }
@@ -362,11 +376,11 @@ namespace CourseworkWinforms
         {
             if (baumer != null)
                 baumer.Camera.f.TriggerMode.Value = TriggerMode.Off;
-            
+
             capture?.Stop();
 
             selectedIndex = toolStripComboBox1.SelectedIndex;
-            
+
             capture = new VideoCapture();
             capture.ImageGrabbed += OnImageReceivedFromWebCams;
             capture.Start();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -28,15 +29,33 @@ namespace CourseworkWinforms
             // camera.Connect("P10-2");        // connect to the camera on the specified USB port
 
 
-            FeatureAccess f = new FeatureAccess(Camera);
-            f.Width.Value = 1920;
-            f.Height.Value = 1080;
-            f.ExposureTime.Value = 331042.0;
-            f.PixelFormat.Value = PixelFormat.BayerRG8; //Цветовое пространство
-            f.BinningHorizontal.Value = 1; //уменьшение разрешения в 4 раза 
-            f.BinningVertical.Value = 1; //уменьшение разрешения в 4 раза
-            f.Gain.Value = 17.64;
+            Dictionary<string,Feature> featureList = Camera.GetFeatureList();
 
+            Feature pixelformat = new Feature();
+            DepthType type = DepthType.Cv8U;
+            if (Camera.f.PixelFormat.GetEnumValueList().TryGetValue("BGR8", out pixelformat)
+                && pixelformat.IsAvailable)
+            {
+                Camera.f.PixelFormat.ValueString = "BGR8";
+            }
+            else if (Camera.f.PixelFormat.GetEnumValueList().TryGetValue("Mono8", out pixelformat)
+                     && pixelformat.IsAvailable)
+            {
+                Camera.f.PixelFormat.ValueString = "Mono8";
+            }
+            else
+            {
+                Console.Write("no supported pixel format");
+            }
+            Camera.f.Width.Value = 1920;
+            Camera.f.Height.Value = 1080;
+            Camera.f.ExposureAuto.Value = ExposureAuto.Off;
+            Camera.f.ExposureTime.Value = 50000;
+            
+            //f.BinningHorizontal.Value = 1; //уменьшение разрешения в 4 раза ???
+            //f.BinningVertical.Value = 1; //уменьшение разрешения в 4 раза
+            //f.Gain.Value = 17.64;
+            
             Camera.ImageBufferCount = 10; // set the size of the buffer queue to 10
             Camera.ImageBufferCycleCount = 1; // sets the cycle count to 1 
 
@@ -47,7 +66,10 @@ namespace CourseworkWinforms
         {
             Mat img = new Mat((int)image.Height, (int)image.Width, DepthType.Cv8U, 3,
                 image.ImageData, step);
-            return img.ToImage<Bgr, byte>().ToBitmap();
+            //var imageMatrix = new Matrix<double>()
+            var a =  img.ToImage<Bgr, byte>();
+            var b = a.ToBitmap();
+            return b;
         }
     }
 }
