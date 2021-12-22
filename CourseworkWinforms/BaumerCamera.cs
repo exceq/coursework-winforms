@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -36,25 +38,28 @@ namespace CourseworkWinforms
             if (Camera.f.PixelFormat.GetEnumValueList().TryGetValue("BGR8", out pixelformat)
                 && pixelformat.IsAvailable)
             {
-                Camera.f.PixelFormat.ValueString = "BGR8";
+                Camera.f.PixelFormat.Value = NeoAPI.PixelFormat.BGR8;
+                //Camera.f.PixelFormat.ValueString = "BGR8";
             }
             else if (Camera.f.PixelFormat.GetEnumValueList().TryGetValue("Mono8", out pixelformat)
                      && pixelformat.IsAvailable)
             {
+                Camera.f.PixelFormat.Value = NeoAPI.PixelFormat.Mono8;
                 Camera.f.PixelFormat.ValueString = "Mono8";
             }
             else
             {
                 Console.Write("no supported pixel format");
             }
+
             Camera.f.Width.Value = 1920;
-            Camera.f.Height.Value = 1080;
+            Camera.f.Height.Value = 1280;
             Camera.f.ExposureAuto.Value = ExposureAuto.Off;
             Camera.f.ExposureTime.Value = 50000;
             
             //f.BinningHorizontal.Value = 1; //уменьшение разрешения в 4 раза ???
             //f.BinningVertical.Value = 1; //уменьшение разрешения в 4 раза
-            //f.Gain.Value = 17.64;
+            //Camera.f.Gain.Value = 17.64;
             
             Camera.ImageBufferCount = 10; // set the size of the buffer queue to 10
             Camera.ImageBufferCycleCount = 1; // sets the cycle count to 1 
@@ -66,9 +71,9 @@ namespace CourseworkWinforms
         {
             Mat img = new Mat((int)image.Height, (int)image.Width, DepthType.Cv8U, 3,
                 image.ImageData, step);
-            //var imageMatrix = new Matrix<double>()
-            var a =  img.ToImage<Bgr, byte>();
+            var a = img.ToImage<Bgr, byte>();
             var b = a.ToBitmap();
+
             return b;
         }
     }

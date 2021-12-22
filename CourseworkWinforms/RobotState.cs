@@ -17,8 +17,17 @@ namespace CourseworkWinforms
         }
 
         public float X, Y, Z, A, B, C;
-    };
 
+        public override string ToString()
+        {
+            return "X: " + X +
+                   "\nY: " + Y +
+                   "\nZ: " + Z +
+                   "\nA: " + A +
+                   "\nB: " + B +
+                   "\nC: " + C;
+        }
+    }
     public class Quaternion
     {
         public float w, x, y, z;

@@ -1,13 +1,12 @@
 using CourseworkWinforms.Properties;
-using DirectShowLib;
-using Emgu.CV;
-using Emgu.CV.Structure;
 using NeoAPI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Image = System.Drawing.Image;
 
@@ -15,11 +14,6 @@ namespace CourseworkWinforms
 {
     public partial class CamsViewer : Form
     {
-        private DsDevice[] webCams;
-        private VideoCapture capture;
-        private int selectedIndex;
-
-
         private BaumerCamera baumer;
         private bool firstCrop;
 
@@ -28,6 +22,7 @@ namespace CourseworkWinforms
             InitializeComponent();
             AdjustButtons();
             ZoomPictureBox();
+            //toolStripButtonConnectBaumer_Click(null, null);
         }
 
         #region Подключение к камерам
@@ -35,118 +30,73 @@ namespace CourseworkWinforms
         private void toolStripButtonConnectBaumer_Click(object sender, EventArgs e)
         {
             firstCrop = true;
-            string id = toolStripTextBox1.Text;
-            id = string.IsNullOrWhiteSpace(id) ? "" : id;
             try
             {
-                // ConnectToBaumer(id);
-                ConnectToBaumerButWhileTrue(id);
-
-                capture?.Stop();
+                ConnectToBaumer();
             }
-            catch (NotConnectedException exception)
+            catch (NeoAPI.NotConnectedException exception)
             {
                 MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
                     "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void toolStripButtonConnectCamera_Click(object sender, EventArgs e)
+        void ConnectToBaumerAsync()
         {
-            firstCrop = true;
-            try
-            {
-                ConnectToWebCameras();
-                toolStripComboBox1.Visible = true;
-                toolStripButtonConnectCamera.Enabled = false;
-            }
-            catch (ArgumentException ex)
-            {
-                MessageBox.Show(ex.Message, "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            baumer = new BaumerCamera(Resources.camera_properties);
         }
 
-        private void ConnectToWebCameras()
+        private async void ConnectToBaumer(string id = "")
         {
-            webCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-            if (webCams.Length == 0)
-                throw new ArgumentException("Не удалось подключиться к веб камерам.");
-
-            foreach (var dsDevice in webCams)
-                toolStripComboBox1.Items.Add(dsDevice.Name);
-
-            toolStripComboBox1.Visible = true;
-            toolStripButtonConnectCamera.Enabled = false;
-        }
-
-        private void ConnectToBaumerButWhileTrue(string id = "")
-        {
-            baumer = new BaumerCamera(Resources.camera_properties, id);
-            int i = 1;
-            while (baumer.Camera.IsConnected)
-            {
-                Bitmap bitmap = null;
-                try
-                {
-                    bitmap = BaumerCamera.ConvertNeoImageToBitmap(baumer.Camera.GetImage());
-                }
-                catch (Exception e)
-                {
-                    // MessageBox.Show("Не удалось сконвертировать изображение.\n\nПодробности:\n" + e,
-                    //     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    toolStripTextBox1.Text = "Ошибка " + i++; // Чтобы в случае чего не было слишком много мессаджей
-                }
-
-                if (bitmap != null)
-                    SetImageToPictureBox(bitmap);
-            }
-        }
-
-        private void ConnectToBaumer(string id = "")
-        {
-            baumer = new BaumerCamera(Resources.camera_properties, id);
-
-            // Включение эвентов у камеры, чтобы получать изображения
-            // как только они поступают с камеры
-            baumer.Camera.f.TriggerMode.Value = TriggerMode.On;
-            baumer.Camera.f.TriggerSource.Value = TriggerSource.Software;
-            baumer.Camera.ImageCallback.Handler += OnImageReceived; // обработчик изображений
-
-            baumer.Camera.EnableImageCallback();
-
-            if (baumer.Camera.IsConnected)
-                toolStripButtonConnectBaumer.Enabled = false;
-
-            for (int i = 0; i < 5; i++) // send 5 triggers to trigger some image callbacks
-            {
-                baumer.Camera.f.TriggerSoftware.Execute();
-                System.Threading.Thread.Sleep(100);
-            }
-
-            baumer.Camera.DisableImageCallback(); // disable callback
-            baumer.Camera.Dispose();
+            toolStripLabelCameraName.Text = "Подключение...";
+            toolStripButtonConnectBaumer.Enabled = false;
+            await Task.Run(ConnectToBaumerAsync);
 
             toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
+            toolStripButtonConnectBaumer.Enabled = !baumer.Camera.IsConnected;
+
+            StartGettingImagesBaumer();
         }
 
-        private void OnImageReceivedFromWebCams(object sender, EventArgs e)
+        private Bitmap GetImageAsync()
         {
-            Mat m = new Mat();
-            capture.Retrieve(m);
-            SetImageToPictureBox(m.ToImage<Bgr, byte>().ToBitmap());
+            var neoImg = baumer.Camera.GetImage();
+            Bitmap bitmap = BaumerCamera.ConvertNeoImageToBitmap(neoImg);
+            Thread.Sleep(40);
+            neoImg.Dispose();
+            return bitmap;
         }
+
+        private async void StartGettingImagesBaumer()
+        {
+            for (int i = 0; baumer.Camera.IsConnected; i++)
+            {
+                try
+                {
+                    Console.WriteLine("Image " + i + " Start");
+                    Bitmap b = await Task.Run(GetImageAsync);
+                    SetImageToPictureBox(b);
+                }
+                catch
+                {
+                    //ignored
+                }
+            }
+        }
+
 
         private void OnImageReceived(object sender, ImageEventArgs imageEventArgs)
         {
-            Bitmap img = BaumerCamera.ConvertNeoImageToBitmap(imageEventArgs.Image);
-            SetImageToPictureBox(img);
+            pictureBox1.Image?.Dispose();
+            Bitmap image = BaumerCamera.ConvertNeoImageToBitmap(imageEventArgs.Image);
+            SetImageToPictureBox(image);
         }
 
         private void SetImageToPictureBox(Image image)
         {
             if (checkBoxPaintSelected.Checked)
                 DrawPointOnImage(image);
+            pictureBox1.Image?.Dispose();
             pictureBox1.Image = image;
             if (firstCrop)
             {
@@ -191,6 +141,11 @@ namespace CourseworkWinforms
         {
             try
             {
+                double k = pictureBox1.Image.Width / (double)pictureBox1.Width * 1.2;
+                greenPen.Width = (int)(k * 1.5);
+                bluePen.Width = greenPen.Width;
+                int fontSize = (int)(10 * k);
+                int radius = (int)(4 * k);
                 var gr = Graphics.FromImage(img);
                 for (var i = 0; i < listView1.Items.Count; i++)
                 {
@@ -204,14 +159,14 @@ namespace CourseworkWinforms
                             gr.DrawLine(greenPen, p.X, p.Y, pp.X, pp.Y);
                     }
 
-                    DrawCircle((i + 1).ToString(), greenPen, Brushes.GreenYellow, p, 5, gr);
+                    DrawCircle((i + 1).ToString(), greenPen, Brushes.GreenYellow, p, radius, gr, fontSize);
                 }
 
                 for (var i = 0; i < listView1.SelectedIndices.Count; i++)
                 {
                     int index = listView1.SelectedIndices[i];
                     var p = (Point)listView1.Items[index].Tag;
-                    DrawCircle((index + 1).ToString(), bluePen, Brushes.Blue, p, 5, gr);
+                    DrawCircle((index + 1).ToString(), bluePen, Brushes.Blue, p, radius, gr, fontSize);
                 }
             }
             catch (Exception)
@@ -220,10 +175,10 @@ namespace CourseworkWinforms
             }
         }
 
-        private void DrawCircle(string text, Pen pen, Brush brush, Point p, int radius, Graphics gr)
+        private void DrawCircle(string text, Pen pen, Brush brush, Point p, int radius, Graphics gr, int sizeFont)
         {
             gr.DrawEllipse(pen, GetCircle(p, radius));
-            gr.DrawString(text, new Font("Arial", 14, FontStyle.Bold),
+            gr.DrawString(text, new Font("Arial", sizeFont, FontStyle.Bold),
                 brush, new Point(p.X + radius, p.Y - radius));
         }
 
@@ -303,13 +258,11 @@ namespace CourseworkWinforms
                 StringBuilder sb = new StringBuilder();
                 foreach (var p in points)
                 {
-                    sb.Append("X: " + p.X + "\n");
-                    sb.Append("Y: " + p.Y + "\n");
-                    sb.Append("Z: " + p.Z + "\n");
-                    sb.Append("A: " + p.A + "\n");
-                    sb.Append("B: " + p.B + "\n");
-                    sb.Append("C: " + p.C + "\n\n");
+                    sb.Append(p.ToString()).Append("\n");
                 }
+
+                labelCameraPosition.Text = "Позиция камеры: \n" + points.First().ToString();
+                labelFlangePosition.Text = "Позиция Фланца: \n" + points.First().ToString();
 
                 // string output = string.Join("\n", points.Select(x => "X: " + x.X));
                 string output = sb.ToString();
@@ -327,9 +280,16 @@ namespace CourseworkWinforms
 
         private Point PictureBoxPointToImagePoint(Point pbPoint)
         {
-            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
-            var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
-            return imagePoint;
+            while (true)
+            {
+                try
+                {
+                    var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
+                    var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
+                    return imagePoint;
+                }
+                catch { }
+            }
         }
 
         private IEnumerable<Point> GetSelectedPoints()
@@ -346,7 +306,6 @@ namespace CourseworkWinforms
 
             buttonItemUp.Enabled = c == 1 && listView1.SelectedIndices[0] > 0;
             buttonItemDown.Enabled = c == 1 && listView1.SelectedIndices[0] < listView1.Items.Count - 1;
-
 
             buttonDeleteAllItems.Enabled = listView1.Items.Count > 0;
         }
@@ -370,22 +329,6 @@ namespace CourseworkWinforms
             if (prop == null)
                 prop = new XmlReader().GetCameraProperties(Resources.camera_properties);
             return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);
-        }
-
-        private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (baumer != null)
-                baumer.Camera.f.TriggerMode.Value = TriggerMode.Off;
-
-            capture?.Stop();
-
-            selectedIndex = toolStripComboBox1.SelectedIndex;
-
-            capture = new VideoCapture();
-            capture.ImageGrabbed += OnImageReceivedFromWebCams;
-            capture.Start();
-            listView1.Clear();
-            AdjustButtons();
         }
     }
 }
