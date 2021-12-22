@@ -19,10 +19,10 @@ namespace CourseworkWinforms.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CourseworkWinforms.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CourseworkWinforms.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace CourseworkWinforms.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,9 +61,50 @@ namespace CourseworkWinforms.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C:\Users\mrmis\RiderProjects\coursework-winforms\CourseworkWinforms\Resources\camera_properties.xml.
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static string camera_properties_xml {
+        public static System.Drawing.Bitmap big3000x2000 {
+            get {
+                object obj = ResourceManager.GetObject("big3000x2000", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot;?&gt;
+        ///&lt;camera_prop&gt;
+        ///	&lt;camera_matrix type_id=&quot;opencv-matrix&quot;&gt;
+        ///	  &lt;rows&gt;3&lt;/rows&gt;
+        ///	  &lt;cols&gt;3&lt;/cols&gt;
+        ///	  &lt;dt&gt;d&lt;/dt&gt;
+        ///	  &lt;data&gt;
+        ///		5180.25  0  1796.39
+        ///		0  5212.67  952.68
+        ///		0  0  1
+        ///	&lt;/data&gt;&lt;/camera_matrix&gt;
+        ///	&lt;distortion_coefficients type_id=&quot;opencv-matrix&quot;&gt;
+        ///	  &lt;rows&gt;1&lt;/rows&gt;
+        ///	  &lt;cols&gt;4&lt;/cols&gt;
+        ///	  &lt;dt&gt;d&lt;/dt&gt;
+        ///	  &lt;data&gt;
+        ///	-0.103723 0.571667 -0.002326 0.007932 &lt;/data&gt;&lt;/distortion_coefficients&gt;
+        ///	&lt;R_camera type_id=&quot;opencv-matrix&quot;&gt;
+        ///	  &lt;rows&gt;3&lt;/rows&gt;
+        ///	  &lt;cols&gt;3&lt;/cols&gt;
+        ///	  &lt;dt&gt;d&lt;/dt&gt;
+        ///	  &lt;data&gt;
+        ///		0.875609 -0.482 [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string camera_properties {
+            get {
+                return ResourceManager.GetString("camera_properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string camera_properties_xml {
             get {
                 return ResourceManager.GetString("camera_properties.xml", resourceCulture);
             }
@@ -72,7 +113,7 @@ namespace CourseworkWinforms.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap image_sample {
+        public static System.Drawing.Bitmap image_sample {
             get {
                 object obj = ResourceManager.GetObject("image_sample", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));

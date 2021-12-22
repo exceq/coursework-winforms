@@ -61,55 +61,56 @@ namespace CourseworkWinforms
             return mat;
         }
 
-        public CameraProperties GetCameraProperties(string path)
+        public CameraProperties GetCameraPropertiesFromFile(string path)
         {
-            Console.WriteLine("Reading properties from Xml");
-            CameraProperties camera = new CameraProperties();
             XmlDocument xDoc = new XmlDocument();
-            try
-            {
-                xDoc.Load(path); //добавить обработку исключения
+            xDoc.LoadXml(path);
+            return ParseXml(xDoc);
+        }
+        public CameraProperties GetCameraProperties(string xmlString)
+        {
+            XmlDocument xDoc = new XmlDocument();
+            xDoc.LoadXml(xmlString);
+            return ParseXml(xDoc);
+        }
 
-                // получим корневой элемент
-                XmlElement root = xDoc.DocumentElement;
-                if (root != null)
+        private CameraProperties ParseXml(XmlDocument xDoc)
+        {
+            CameraProperties camera = new CameraProperties();
+            // получим корневой элемент
+            XmlElement root = xDoc.DocumentElement;
+            if (root != null)
+            {
+                // обход всех узлов в корневом элементе
+                foreach (XmlElement node in root)
                 {
-                    // обход всех узлов в корневом элементе
-                    foreach (XmlElement node in root)
+                    switch (node.Name)
                     {
-                        switch (node.Name)
-                        {
-                            case "camera_matrix":
-                                camera.cameraMatrix = ParseMatrixFromXml(node);
-                                break;
-                            case "distortion_coefficients":
-                                camera.distorsionCoefficients = ParseMatrixFromXml(node);
-                                break;
-                            case "R_camera":
-                                camera.R_camera2flange = ParseMatrixFromXml(node);
-                                break;
-                            case "T_camera":
-                                camera.T_camera2flange = ParseMatrixFromXml(node);
-                                break;
-                            case "camera_pos":
-                                camera.cameraCartesianPosition = ParseFrameFromXml(node);
-                                break;
-                            case "flange_position":
-                                camera.flangeFrame = ParseFrameFromXml(node);
-                                break;
-                            case "focus":
-                                foreach (XmlNode child in node.ChildNodes)
-                                    if (child.Name == "data") 
-                                        camera.focus = double.Parse(child.InnerText);
-                                break;
-                        }
+                        case "camera_matrix":
+                            camera.cameraMatrix = ParseMatrixFromXml(node);
+                            break;
+                        case "distortion_coefficients":
+                            camera.distorsionCoefficients = ParseMatrixFromXml(node);
+                            break;
+                        case "R_camera":
+                            camera.R_camera2flange = ParseMatrixFromXml(node);
+                            break;
+                        case "T_camera":
+                            camera.T_camera2flange = ParseMatrixFromXml(node);
+                            break;
+                        case "camera_pos":
+                            camera.cameraCartesianPosition = ParseFrameFromXml(node);
+                            break;
+                        case "flange_position":
+                            camera.flangeFrame = ParseFrameFromXml(node);
+                            break;
+                        case "focus":
+                            foreach (XmlNode child in node.ChildNodes)
+                                if (child.Name == "data")
+                                    camera.focus = double.Parse(child.InnerText);
+                            break;
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw e;
             }
 
             return camera;

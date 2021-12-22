@@ -1,39 +1,111 @@
+using CourseworkWinforms.Properties;
+using NeoAPI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using CourseworkWinforms.Properties;
-using DirectShowLib;
-using Emgu.CV;
-using Emgu.CV.Structure;
+using Image = System.Drawing.Image;
 
 namespace CourseworkWinforms
 {
     public partial class CamsViewer : Form
     {
-        private VideoCapture capture;
-        private DsDevice[] webCams;
-        private int selectedCameraId;
-
+        private BaumerCamera baumer;
         private bool firstCrop;
-
 
         public CamsViewer()
         {
             InitializeComponent();
             AdjustButtons();
             ZoomPictureBox();
+            //toolStripButtonConnectBaumer_Click(null, null);
         }
 
-        // Загрузка формы
-        private void CamsViewer_Load(object sender, EventArgs e)
+        #region Подключение к камерам
+
+        private void toolStripButtonConnectBaumer_Click(object sender, EventArgs e)
         {
-            webCams = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-            foreach (var dsDevice in webCams)
-                toolStripComboBox1.Items.Add(dsDevice.Name);
+            firstCrop = true;
+            try
+            {
+                ConnectToBaumer();
+            }
+            catch (NeoAPI.NotConnectedException exception)
+            {
+                MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
+                    "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+        void ConnectToBaumerAsync()
+        {
+            baumer = new BaumerCamera(Resources.camera_properties);
+        }
+
+        private async void ConnectToBaumer(string id = "")
+        {
+            toolStripLabelCameraName.Text = "Подключение...";
+            toolStripButtonConnectBaumer.Enabled = false;
+            await Task.Run(ConnectToBaumerAsync);
+
+            toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
+            toolStripButtonConnectBaumer.Enabled = !baumer.Camera.IsConnected;
+
+            StartGettingImagesBaumer();
+        }
+
+        private Bitmap GetImageAsync()
+        {
+            var neoImg = baumer.Camera.GetImage();
+            Bitmap bitmap = BaumerCamera.ConvertNeoImageToBitmap(neoImg);
+            Thread.Sleep(40);
+            neoImg.Dispose();
+            return bitmap;
+        }
+
+        private async void StartGettingImagesBaumer()
+        {
+            for (int i = 0; baumer.Camera.IsConnected; i++)
+            {
+                try
+                {
+                    Console.WriteLine("Image " + i + " Start");
+                    Bitmap b = await Task.Run(GetImageAsync);
+                    SetImageToPictureBox(b);
+                }
+                catch
+                {
+                    //ignored
+                }
+            }
+        }
+
+
+        private void OnImageReceived(object sender, ImageEventArgs imageEventArgs)
+        {
+            pictureBox1.Image?.Dispose();
+            Bitmap image = BaumerCamera.ConvertNeoImageToBitmap(imageEventArgs.Image);
+            SetImageToPictureBox(image);
+        }
+
+        private void SetImageToPictureBox(Image image)
+        {
+            if (checkBoxPaintSelected.Checked)
+                DrawPointOnImage(image);
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = image;
+            if (firstCrop)
+            {
+                ZoomPictureBox();
+                firstCrop = false;
+            }
+        }
+
+        #endregion
 
         private void ZoomPictureBox()
         {
@@ -49,45 +121,31 @@ namespace CourseworkWinforms
             float ratioSize = (float)lowerFormSide / lowerImgSide;
             var newWidth = (int)(pictureBox1.Image.Width * ratioSize);
             var newHeight = (int)(pictureBox1.Image.Height * ratioSize);
-            pictureBox1.ClientSize = new Size(newWidth, newHeight);
-        }
-
-        private void CaptureOnImageGrabbed(object sender, EventArgs e)
-        {
             try
             {
-                Mat m = new Mat();
-                capture.Retrieve(m);
-                var img = m.ToImage<Bgr, byte>().ToBitmap();
-                if (checkBoxPaintSelected.Checked)
-                    DrawPointOnImage(img);
-                pictureBox1.Image = img;
-
-                if (firstCrop)
-                {
-                    ZoomPictureBox();
-                    firstCrop = false;
-                }
+                pictureBox1.ClientSize = new Size(newWidth, newHeight);
             }
-            catch (InvalidOperationException)
+            catch (Exception e)
             {
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.StackTrace);
-                MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // ignored
             }
         }
+
 
         #region Drawing
 
         Pen greenPen = new Pen(Color.GreenYellow, 3);
         Pen bluePen = new Pen(Color.Blue, 3);
 
-        private void DrawPointOnImage(Bitmap img)
+        private void DrawPointOnImage(Image img)
         {
             try
             {
+                double k = pictureBox1.Image.Width / (double)pictureBox1.Width * 1.2;
+                greenPen.Width = (int)(k * 1.5);
+                bluePen.Width = greenPen.Width;
+                int fontSize = (int)(10 * k);
+                int radius = (int)(4 * k);
                 var gr = Graphics.FromImage(img);
                 for (var i = 0; i < listView1.Items.Count; i++)
                 {
@@ -101,14 +159,14 @@ namespace CourseworkWinforms
                             gr.DrawLine(greenPen, p.X, p.Y, pp.X, pp.Y);
                     }
 
-                    DrawCircle((i + 1).ToString(), greenPen, Brushes.GreenYellow, p, 5, gr);
+                    DrawCircle((i + 1).ToString(), greenPen, Brushes.GreenYellow, p, radius, gr, fontSize);
                 }
 
                 for (var i = 0; i < listView1.SelectedIndices.Count; i++)
                 {
                     int index = listView1.SelectedIndices[i];
                     var p = (Point)listView1.Items[index].Tag;
-                    DrawCircle((index + 1).ToString(), bluePen, Brushes.Blue, p, 5, gr);
+                    DrawCircle((index + 1).ToString(), bluePen, Brushes.Blue, p, radius, gr, fontSize);
                 }
             }
             catch (Exception)
@@ -117,10 +175,10 @@ namespace CourseworkWinforms
             }
         }
 
-        private void DrawCircle(string text, Pen pen, Brush brush, Point p, int radius, Graphics gr)
+        private void DrawCircle(string text, Pen pen, Brush brush, Point p, int radius, Graphics gr, int sizeFont)
         {
             gr.DrawEllipse(pen, GetCircle(p, radius));
-            gr.DrawString(text, new Font("Arial", 14, FontStyle.Bold),
+            gr.DrawString(text, new Font("Arial", sizeFont, FontStyle.Bold),
                 brush, new Point(p.X + radius, p.Y - radius));
         }
 
@@ -131,22 +189,26 @@ namespace CourseworkWinforms
 
         #endregion
 
+
         #region Events
 
-        private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void pictureBox1_Click(object sender, MouseEventArgs e)
         {
-            selectedCameraId = toolStripComboBox1.SelectedIndex;
-            try
+            var imagePoint = PictureBoxPointToImagePoint(e.Location);
+
+            var lvitem = new ListViewItem($"{listView1.Items.Count + 1}. X: {imagePoint.X} Y: {imagePoint.Y}");
+            lvitem.Tag = imagePoint;
+            listView1.Items.Add(lvitem);
+
+            AdjustButtons();
+
+            //Рисование на статической картинке ограничено
+            //потому что pictureBox не обновляется самостояельно
+            if (firstCrop && checkBoxPaintSelected.Checked)
             {
-                firstCrop = true;
-                capture = new VideoCapture(selectedCameraId);
-                capture.ImageGrabbed += CaptureOnImageGrabbed;
-                capture.Start();
-                listView1.Clear();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                var img = Resources.big3000x2000;
+                DrawPointOnImage(img);
+                pictureBox1.Image = img;
             }
         }
 
@@ -159,17 +221,6 @@ namespace CourseworkWinforms
         {
             if (pictureBox1.Image != null)
                 ZoomPictureBox();
-        }
-
-        private void pictureBox1_Click(object sender, MouseEventArgs e)
-        {
-            var imagePoint = PictureBoxPointToImagePoint(e.Location);
-
-            var lvitem = new ListViewItem($"{listView1.Items.Count + 1}. X: {imagePoint.X} Y: {imagePoint.Y}");
-            lvitem.Tag = imagePoint;
-            listView1.Items.Add(lvitem);
-
-            AdjustButtons();
         }
 
         private void buttonItemDelete_Click(object sender, EventArgs e)
@@ -207,13 +258,11 @@ namespace CourseworkWinforms
                 StringBuilder sb = new StringBuilder();
                 foreach (var p in points)
                 {
-                    sb.Append("X: " + p.X + "\n");
-                    sb.Append("Y: " + p.Y + "\n");
-                    sb.Append("Z: " + p.Z + "\n");
-                    sb.Append("A: " + p.A + "\n");
-                    sb.Append("B: " + p.B + "\n");
-                    sb.Append("C: " + p.C + "\n\n");
+                    sb.Append(p.ToString()).Append("\n");
                 }
+
+                labelCameraPosition.Text = "Позиция камеры: \n" + points.First().ToString();
+                labelFlangePosition.Text = "Позиция Фланца: \n" + points.First().ToString();
 
                 // string output = string.Join("\n", points.Select(x => "X: " + x.X));
                 string output = sb.ToString();
@@ -231,9 +280,16 @@ namespace CourseworkWinforms
 
         private Point PictureBoxPointToImagePoint(Point pbPoint)
         {
-            var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
-            var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
-            return imagePoint;
+            while (true)
+            {
+                try
+                {
+                    var k = (double)pictureBox1.Image.Height / pictureBox1.Height;
+                    var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
+                    return imagePoint;
+                }
+                catch { }
+            }
         }
 
         private IEnumerable<Point> GetSelectedPoints()
@@ -250,7 +306,6 @@ namespace CourseworkWinforms
 
             buttonItemUp.Enabled = c == 1 && listView1.SelectedIndices[0] > 0;
             buttonItemDown.Enabled = c == 1 && listView1.SelectedIndices[0] < listView1.Items.Count - 1;
-
 
             buttonDeleteAllItems.Enabled = listView1.Items.Count > 0;
         }
@@ -270,9 +325,9 @@ namespace CourseworkWinforms
 
         private Frame GetFrameFromPoint(Point point)
         {
-            XmlReader xmlReader = new XmlReader();
-            var prop = xmlReader.GetCameraProperties(Resources.camera_properties_xml);
-            // var prop = xmlReader.GetCameraProperties("..\\..\\..\\Resources\\camera_properties.xml");
+            var prop = baumer?.CameraProperties;
+            if (prop == null)
+                prop = new XmlReader().GetCameraProperties(Resources.camera_properties);
             return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);
         }
     }
