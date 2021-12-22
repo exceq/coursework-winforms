@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CourseworkWinforms
+﻿namespace CourseworkWinforms
 {
     public class Frame
     {

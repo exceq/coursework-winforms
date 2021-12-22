@@ -1,200 +1,303 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Net.Sockets;
+using System.Text;
+using server_connect;
 
-namespace client_connect
+namespace CourseworkWinforms
 {
-    public class Client
+    class Client
     {
-        public int PortConnect { get; set; }
-        public string AddressConnect { get; set; }
-        public TcpClient TcpClient { get; }
-        public bool Connected => TcpClient.Connected;
-
-        private int port;
-        private TcpListener listener;
-        private NetworkStream stream;
+        // Поле порта;
+        public int port { get; set; } = 54600;
+        // Поле адреса;
+        public string address { get; set; } = "192.168.7.107";
+        // Поле кодировки;
+        public Encoding encoding { get; set; } = Encoding.ASCII;
+        // Поле соединения;
+        private TcpClient tcpClient = new TcpClient();
+        // Поле потока ввода;
+        private NetworkStream networkStream;
 
         // Блок конструкторов;
-        public Client(int portConnect, string addressConnect)
+        public Client()
         {
-            this.PortConnect = portConnect;
-            this.AddressConnect = addressConnect;
-            this.TcpClient = new TcpClient();
-
             Connect();
         }
-
-        public Client(int port, int portConnect, string addressConnect)
+        public Client(string address, int port)
         {
             this.port = port;
-            this.PortConnect = portConnect;
-            this.AddressConnect = addressConnect;
-            this.TcpClient = new TcpClient();
+            this.address = address;
 
-            Listen();
             Connect();
         }
-        
 
-        // Блок отправки;
-        public void Send(string message)
+        // Блок создания подключений;
+        public void Connect()
         {
             try
             {
-                string textException = "Error! Сообщение не может быть отправлено.";
-                byte[] bytes = Encoding.UTF8.GetBytes(message);
-
-                if (!Connected)
-                {
-                    throw new Exception($"{textException} Соединение не установлено.");
-                }
-
-                stream.Write(bytes, 0, bytes.Length);
+                // Создаем соединение;
+                tcpClient.Connect(IPAddress.Parse(address), port);
+                // Получаем поток данных соединения;
+                networkStream = tcpClient.GetStream();
             }
             catch (Exception error)
             {
-                Console.WriteLine(error.Message);
+                throw new Exception($" * Подключение по порту: {port} и адресу: {address} не удалось;");
             }
+
         }
-
-        // Блок повторного соединения;
-        public void Reconnect()
+        public void Connect(int port)
         {
-            Connect();
-        }
-
-        public void Reconnect(int portConnect)
-        {
-            int portConnectLast = this.PortConnect;
-            this.PortConnect = portConnect;
-
-            Reconnect();
-
-            if (!Connected)
-            {
-                this.PortConnect = portConnectLast;
-            }
-        }
-
-        public void Reconnect(string addressConnect)
-        {
-            string addressConnectLast = addressConnect;
-            this.AddressConnect = addressConnect;
-
-            Reconnect();
-
-            if (!Connected)
-            {
-                this.AddressConnect = addressConnectLast;
-            }
-        }
-
-        public void Reconnect(string addressConnect, int portConnect)
-        {
-            int portConnectLast = this.PortConnect;
-            string addressConnectLast = this.AddressConnect;
-
-            this.PortConnect = portConnect;
-            this.AddressConnect = addressConnect;
-
-            Connect();
-
-            if (!Connected)
-            {
-                this.PortConnect = portConnectLast;
-                this.AddressConnect = addressConnectLast;
-            }
-        }
-
-
-        // Блок установки соединения;
-        private void Connect()
-        {
+            // Запоминаем старый порт;
+            int portLast = this.port;
+            // Задаем новый порт;
+            this.port = port;
+            // Вызываем подключение;
             try
             {
-                this.TcpClient.Connect(new IPEndPoint(IPAddress.Parse(this.AddressConnect), this.PortConnect));
-                this.stream = TcpClient.GetStream();
+                Connect();
             }
             catch (Exception error)
             {
-                Console.WriteLine(error.Message);
-                Console.WriteLine("Выберите дальнейшие действия:");
-                Console.WriteLine(" 0. Оставить без подключения;");
-                Console.WriteLine(" 1. Переподключиться;");
-                Console.WriteLine(" 2. Переподключиться с новыми параметрами;");
-                Console.WriteLine(" -. Приостановить работу программы;");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(error);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($" осуществляется переподключение с исходным портом: {portLast};");
+                Console.ResetColor();
 
-                switch (Console.ReadKey().KeyChar)
+                // Возвращаем исходный порт;
+                this.port = portLast;
+                // Переподключение;
+                Connect();
+
+                if (CheckConnect())
                 {
-                    case '0':
-                        break;
-                    case '1':
-                        Console.Clear();
-                        Connect();
-                        break;
-                    case '2':
-                        Console.Clear();
-                        Console.WriteLine(" Укажите новый IP:");
-                        string addressConnects = Console.ReadLine();
-                        Console.WriteLine(" Укажите новый Порт:");
-                        bool success = false;
-                        do
-                        {
-                            success = int.TryParse(Console.ReadLine(), out int port);
-                            PortConnect = port;
-                        } while (success);
+                    Console.WriteLine(" * переподключение прошло успешно; ");
+                }
 
-                        Reconnect();
-                        break;
-                    default:
-                        Console.Clear();
-                        Console.WriteLine($"Порт: {this.PortConnect};");
-                        Console.WriteLine($"IP  : {this.AddressConnect};");
-                        Environment.Exit(0);
-                        break;
+            }
+        }
+        public void Connect(string address)
+        {
+            // Запоминаем старый адрес;
+            string addressLast = this.address;
+            // Задаем новый адрес;
+            this.address = address;
+            // Вызываем подключение;
+            try
+            {
+                Connect();
+            }
+            catch (Exception error)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(error);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($" осуществляется переподключение с исходным адресом: {address};");
+                Console.ResetColor();
+
+                // Возвращаем исходный адрес;
+                this.address = addressLast;
+                // Переподключение;
+                Connect();
+
+                if (CheckConnect())
+                {
+                    Console.WriteLine(" * переподключение прошло успешно; ");
                 }
             }
         }
-
-        // Блок прослушивания соединений;
-        private void Listen()
+        public void Connect(string address, int port)
         {
-            this.listener = new TcpListener(IPAddress.Parse("127.0.0.1"), this.port);
-            this.listener.Start();
+            // Запоминаем старый порт;
+            int portLast = this.port;
+            // Запоминаем старый адрес;
+            string addressLast = this.address;
+            // Задаем новый порт;
+            this.port = port;
+            // Задаем новый адрес;
+            this.address = address;
+            // Вызываем подлючение;
+            try
+            {
+                Connect();
+            }
+            catch (Exception error)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(error);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($" осуществляется переподключение с исходными портом: {port} и адресом: {address};");
+                Console.ResetColor();
+
+                // Возвращаем исходный порт;
+                this.port = portLast;
+                // Возвращаем исходный адрес;
+                this.address = addressLast;
+                // Переподключение;
+                Connect();
+
+                if (CheckConnect())
+                {
+                    Console.WriteLine(" * переподключение прошло успешно; ");
+                }
+            }
+
+
         }
 
-        // Принятие клиента;
-        public void Accept()
+        // Проверка подключения;
+        public bool CheckConnect()
         {
-            Thread thread = new Thread(Process);
-            thread.Start();
+            return tcpClient.Connected;
         }
 
-        // Процесс нового соединения;
-        private void Process()
+        // Проверка наличия данных в потоке;
+        public bool CheckData()
         {
-            byte[] buffer = new byte[256];
+            return networkStream.DataAvailable;
+        }
+
+        // Отправка данных;
+        public void Send()
+        {
+
+        }
+
+        // Закрытие подключения;
+        public void Close()
+        {
+            tcpClient.Close();
+        }
+
+        // Считывание данных;
+        public PositionData Read()
+        {
+            int bytes = 0;
+            byte[] data = new byte[1000];
+
+            var positionData = new PositionData();
             
+            if (CheckData())
+            {
+                bytes = networkStream.Read(data, 0, data.Length);
+            }
+
             do
             {
-            
-                StringBuilder builder = new StringBuilder();
-                int bytes = 0;
-                do
+                string message = Encoding.ASCII.GetString(data);
+
+                Console.WriteLine($" * Считано байт: {bytes};");
+
+                Console.WriteLine($"{GetCIndex(data)} - индекс;");
+
+                //if (GetCIndex(data) != -1)
+                //{
+                //    PositionData.cFrame = GetFrame(data);
+                //    data = data.Skip(45).ToArray();
+                //}
+                if (data[0] == 'C' && data[1] == 'a')
                 {
-                    bytes = stream.Read(buffer, 0, buffer.Length);
-                    builder.Append(Encoding.Unicode.GetString(buffer, 0, bytes));
-                } while (stream.DataAvailable);
-            
-                string message = builder.ToString();
-            
-                Console.WriteLine(message);
-            
-            } while (true);
+                    if (message.IndexOf(ConfiguratePositionData.CAMERA_POSITION_MSG) + ConfiguratePositionData.CAMERA_STRING_OFFSET + ConfiguratePositionData.AXIS_NUM * ConfiguratePositionData.BYTES_PER_KRC_REAL < data.Length)
+                    {
+                        positionData.CameraPosition = GetFrame(data);
+                        data = data.Skip(45).ToArray();
+                    }
+                }
+                else if (data[0] == 'F' && data[1] == 'l')
+                {
+                    if (message.IndexOf(ConfiguratePositionData.FLANGE_POS_MSG) + ConfiguratePositionData.FLANGE_STRING_OFFSET + ConfiguratePositionData.AXIS_NUM * ConfiguratePositionData.BYTES_PER_KRC_REAL < message.Length)
+                    {
+                        positionData.FlangePosition = GetFrame(data);
+                        data = data.Skip(34).ToArray();
+                    }
+                }
+                else if (data[0] == 'R' && data[1] == 'a')
+                {
+                    if (message.IndexOf(ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG) + ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG.Length + ConfiguratePositionData.BYTES_PER_KRC_REAL < message.Length)
+                    {
+                        positionData.RangeFinderDistanceIntern = BitConverter.ToSingle(data.Skip(ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG.Length).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0) * 500 + 125;
+                        data = data.Skip(34).ToArray();
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+                Console.WriteLine($" * Осталось байт: {data.Length};");
+
+            } while (CheckData() && data.Length != 0 && data[0] != 0);
+
+            return positionData;
+        }
+        
+        public PositionData Read1()
+        {
+            int bytes = 0;
+            byte[] data = new byte[1000];
+            var positionData = new PositionData();
+
+            if (CheckData())
+            {
+                bytes = networkStream.Read(data, 0, data.Length);
+            }
+
+            for (int i = 0; i < data.Length; i++)
+            {
+
+                Console.WriteLine((char)data[i]);
+
+                if (data[i] == 'C' && data[i + 1] == 'a')
+                {
+                    positionData.CameraPosition = GetFrame(data);
+                }
+                else if (data[i] == 'F' && data[i + 1] == 'l')
+                {
+                    positionData.FlangePosition = GetFrame(data);
+                }
+                else if (data[i] == 'R' && data[i + 1] == 'a')
+                {
+                    positionData.RangeFinderDistanceIntern = BitConverter.ToSingle(data.Skip(ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG.Length).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0) * 500 + 125;
+                }
+            }
+
+            return positionData;
+        }
+
+        // Блок вспомогательных методов;
+
+        // Создание фрейма;
+        private Frame GetFrame(byte[] data)
+        {
+            return new Frame
+            (
+                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_X_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
+                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_Y_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
+                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_Z_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
+                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_AROUND_Z_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
+                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_AROUND_Y_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
+                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_AROUND_X_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0)
+            );
+        }
+        // Получение индекса позиции камеры;
+        private int GetCIndex(byte[] data)
+        {
+            int result = -1;
+
+            for (int i = 0; i < data.Length - 1; i++)
+            {
+                if (data[i] == 'C' && data[i + 1] == 'a')
+                {
+                    result = i;
+                    break;
+                }
+            }
+
+            return result;
         }
     }
 }

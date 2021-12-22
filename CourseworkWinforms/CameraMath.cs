@@ -1,8 +1,6 @@
-﻿using Emgu.CV;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Drawing;
-using System.Text;
+using Emgu.CV;
 
 //using OpenCvSharp;
 
@@ -115,16 +113,17 @@ namespace CourseworkWinforms
             xyzLaserPoint[2] = res[0,2];
         }
 
-        static public Frame CalculatePixelLineFromCameraProperties(CameraProperties prop, Point pixel )
+        static public Frame CalculatePixelLineFromCameraProperties(CameraProperties prop, Frame cameraPosition, 
+            Frame flangePosition, Point pixel )
         {
             return CalculatePixelLine(
-                prop.cameraCartesianPosition,
-                prop.flangeFrame,
-                prop.cameraMatrix,
+                cameraPosition,
+                flangePosition,
+                prop.CameraMatrix,
                 prop.R_camera2flange,
                 prop.T_camera2flange,
                 pixel,
-                prop.focus);
+                prop.Focus);
         }
         
         static public Frame CalculatePixelLine(Frame cameraCartesianPosition, 
@@ -180,12 +179,10 @@ namespace CourseworkWinforms
                     cameraCartesianPosition.Z
                 }
             };
-            
-            Frame targetRangefinderPixelFrame;
+
             try
             {
-                targetRangefinderPixelFrame = 
-                    CalculateFrameAngleFromMatrixDouble(cameraCartesianPosition, T_camera2base, R_pixel2Base);
+                var targetRangefinderPixelFrame = CalculateFrameAngleFromMatrixDouble(cameraCartesianPosition, T_camera2base, R_pixel2Base);
                 return targetRangefinderPixelFrame;
             }
             catch (Exception e)
@@ -193,9 +190,17 @@ namespace CourseworkWinforms
                 Console.WriteLine("error");
                 throw e;
             }
-
-            //std::cout << "targetRangefinderPixelFrame >> " << targetRangefinderPixelFrame.A << targetRangefinderPixelFrame.B << targetRangefinderPixelFrame.C << std::endl;
-            
+        }
+        public static Frame CalculateNewCoordinate(Frame oldPoint, double distance)
+        {
+            double oldDistance = Math.Sqrt(Math.Pow(oldPoint.X,2) + Math.Pow(oldPoint.Y, 2) + Math.Pow(oldPoint.Z, 2)); // Длина начального отрезка
+            double k = (distance + oldDistance) / oldDistance;
+            return new Frame((float)(oldPoint.X * k),
+                            (float)(oldPoint.Y * k),
+                            (float)(oldPoint.Z * k),
+                            oldPoint.A,
+                            oldPoint.B,
+                            oldPoint.C);
         }
     }
 }

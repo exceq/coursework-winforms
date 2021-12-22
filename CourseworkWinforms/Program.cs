@@ -1,7 +1,5 @@
 using System;
-using System.Drawing;
 using System.Windows.Forms;
-using Emgu.CV;
 
 namespace CourseworkWinforms
 {

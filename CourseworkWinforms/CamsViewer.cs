@@ -16,13 +16,15 @@ namespace CourseworkWinforms
     {
         private BaumerCamera baumer;
         private bool firstCrop;
+        private Client client;
 
         public CamsViewer()
         {
             InitializeComponent();
             AdjustButtons();
             ZoomPictureBox();
-            //toolStripButtonConnectBaumer_Click(null, null);
+            //toolStripButtonConnectBaumer_Click(null, null); // запуск камеры
+            client = new Client();
         }
 
         #region Подключение к камерам
@@ -43,7 +45,8 @@ namespace CourseworkWinforms
 
         void ConnectToBaumerAsync()
         {
-            baumer = new BaumerCamera(Resources.camera_properties);
+            CameraProperties prop = XmlReader.GetCameraProperties(Resources.camera_properties);
+            baumer = new BaumerCamera(prop);
         }
 
         private async void ConnectToBaumer(string id = "")
@@ -254,24 +257,36 @@ namespace CourseworkWinforms
         {
             try
             {
-                IEnumerable<Frame> points = GetSelectedPoints().Select(GetFrameFromPoint);
+                PositionData positionData = client.Read1();
+
+                IEnumerable<Frame> newCoords =
+                    GetSelectedPoints().Select(point => CalculateNewCoordinate(point, positionData));
                 StringBuilder sb = new StringBuilder();
-                foreach (var p in points)
+
+                foreach (var p in newCoords)
                 {
-                    sb.Append(p.ToString()).Append("\n");
+                    sb.Append(p).Append("\n\n");
                 }
 
-                labelCameraPosition.Text = "Позиция камеры: \n" + points.First().ToString();
-                labelFlangePosition.Text = "Позиция Фланца: \n" + points.First().ToString();
+                labelCameraPosition.Text = "Позиция камеры: \n" + positionData.CameraPosition;
+                labelFlangePosition.Text = "Позиция Фланца: \n" + positionData.FlangePosition;
+                // TODO сделать обновление позиции камеры при передвижении
 
-                // string output = string.Join("\n", points.Select(x => "X: " + x.X));
-                string output = sb.ToString();
 
-                MessageBox.Show(output, "Frames", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // TODO отправить манипулятору команду на передвижение по заданным точкам  
+                // Постоянно считывать данные, если предыдущая и текущая точка равны,
+                // это значит, что манипулятор достиг точки и можно отправлять следующую
+
+                // foreach (var newFrame in newCoords)
+                // {
+                //     client.Send(newFrame); // idk
+                // }
+
+                MessageBox.Show(sb.ToString(), "Новые координаты", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception exception)
             {
-                MessageBox.Show("Кнопка в разработке :)\n\n" + exception, "Dev", MessageBoxButtons.OK,
+                MessageBox.Show("Ошибка\n\n" + exception, "Dev", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
         }
@@ -288,7 +303,9 @@ namespace CourseworkWinforms
                     var imagePoint = new Point((int)(pbPoint.X * k), (int)(pbPoint.Y * k));
                     return imagePoint;
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -323,12 +340,13 @@ namespace CourseworkWinforms
             listView1.Focus();
         }
 
-        private Frame GetFrameFromPoint(Point point)
+        private Frame CalculateNewCoordinate(Point point, PositionData positionData)
         {
-            var prop = baumer?.CameraProperties;
-            if (prop == null)
-                prop = new XmlReader().GetCameraProperties(Resources.camera_properties);
-            return CameraMath.CalculatePixelLineFromCameraProperties(prop, point);
+            Frame direction = CameraMath.CalculatePixelLineFromCameraProperties(baumer.CameraProperties,
+                positionData.CameraPosition,
+                positionData.FlangePosition,
+                point);
+            return CameraMath.CalculateNewCoordinate(direction, positionData.RangeFinderDistanceIntern);
         }
     }
 }
