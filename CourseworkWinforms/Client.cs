@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using server_connect;
+using System.Threading.Tasks;
 
 namespace CourseworkWinforms
 {
@@ -42,6 +42,7 @@ namespace CourseworkWinforms
                 tcpClient.Connect(IPAddress.Parse(address), port);
                 // Получаем поток данных соединения;
                 networkStream = tcpClient.GetStream();
+                //RefreshData();
             }
             catch (Exception error)
             {
@@ -110,6 +111,17 @@ namespace CourseworkWinforms
                 }
             }
         }
+
+        //private void RefreshData()
+        //{
+        //    Task.Run(() =>
+        //    {
+        //        while (true)
+        //            if (CheckConnect())
+        //                Read();
+        //    });
+        //}
+
         public void Connect(string address, int port)
         {
             // Запоминаем старый порт;
@@ -179,125 +191,91 @@ namespace CourseworkWinforms
             int bytes = 0;
             byte[] data = new byte[1000];
 
-            var positionData = new PositionData();
-            
             if (CheckData())
             {
                 bytes = networkStream.Read(data, 0, data.Length);
             }
-
-            do
-            {
-                string message = Encoding.ASCII.GetString(data);
-
-                Console.WriteLine($" * Считано байт: {bytes};");
-
-                Console.WriteLine($"{GetCIndex(data)} - индекс;");
-
-                //if (GetCIndex(data) != -1)
-                //{
-                //    PositionData.cFrame = GetFrame(data);
-                //    data = data.Skip(45).ToArray();
-                //}
-                if (data[0] == 'C' && data[1] == 'a')
-                {
-                    if (message.IndexOf(ConfiguratePositionData.CAMERA_POSITION_MSG) + ConfiguratePositionData.CAMERA_STRING_OFFSET + ConfiguratePositionData.AXIS_NUM * ConfiguratePositionData.BYTES_PER_KRC_REAL < data.Length)
-                    {
-                        positionData.CameraPosition = GetFrame(data);
-                        data = data.Skip(45).ToArray();
-                    }
-                }
-                else if (data[0] == 'F' && data[1] == 'l')
-                {
-                    if (message.IndexOf(ConfiguratePositionData.FLANGE_POS_MSG) + ConfiguratePositionData.FLANGE_STRING_OFFSET + ConfiguratePositionData.AXIS_NUM * ConfiguratePositionData.BYTES_PER_KRC_REAL < message.Length)
-                    {
-                        positionData.FlangePosition = GetFrame(data);
-                        data = data.Skip(34).ToArray();
-                    }
-                }
-                else if (data[0] == 'R' && data[1] == 'a')
-                {
-                    if (message.IndexOf(ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG) + ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG.Length + ConfiguratePositionData.BYTES_PER_KRC_REAL < message.Length)
-                    {
-                        positionData.RangeFinderDistanceIntern = BitConverter.ToSingle(data.Skip(ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG.Length).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0) * 500 + 125;
-                        data = data.Skip(34).ToArray();
-                    }
-                }
-                else
-                {
-                    break;
-                }
-
-                Console.WriteLine($" * Осталось байт: {data.Length};");
-
-            } while (CheckData() && data.Length != 0 && data[0] != 0);
+            PositionData positionData = new PositionData();
+            positionData.CameraPosition = ParseFrameFromBytes(FindBytes(data, "CameraPosition"));
+            positionData.FlangePosition = ParseFrameFromBytes(FindBytes(data, "FlangePosition"));
+            positionData.RangeFinderDistanceIntern = ParseDistance(FindBytes(data, "RangefinderDistance"));
 
             return positionData;
         }
-        
-        public PositionData Read1()
+
+        public float ReadDistance()
         {
-            int bytes = 0;
             byte[] data = new byte[1000];
-            var positionData = new PositionData();
 
             if (CheckData())
-            {
-                bytes = networkStream.Read(data, 0, data.Length);
-            }
+                networkStream.Read(data, 0, data.Length);
 
-            for (int i = 0; i < data.Length; i++)
-            {
-
-                Console.WriteLine((char)data[i]);
-
-                if (data[i] == 'C' && data[i + 1] == 'a')
-                {
-                    positionData.CameraPosition = GetFrame(data);
-                }
-                else if (data[i] == 'F' && data[i + 1] == 'l')
-                {
-                    positionData.FlangePosition = GetFrame(data);
-                }
-                else if (data[i] == 'R' && data[i + 1] == 'a')
-                {
-                    positionData.RangeFinderDistanceIntern = BitConverter.ToSingle(data.Skip(ConfiguratePositionData.RANGE_FINDER_DISTANCE_MSG.Length).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0) * 500 + 125;
-                }
-            }
-
-            return positionData;
+            return ParseDistance(FindBytes(data, "RangefinderDistance"));
         }
 
         // Блок вспомогательных методов;
-
-        // Создание фрейма;
-        private Frame GetFrame(byte[] data)
+        private byte[] FindBytes(byte[] bytes, string message)
         {
-            return new Frame
-            (
-                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_X_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
-                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_Y_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
-                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_Z_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
-                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_AROUND_Z_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
-                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_AROUND_Y_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0),
-                BitConverter.ToSingle(data.Skip(ConfiguratePositionData.CAMERA_AROUND_X_OFFSET).Take(ConfiguratePositionData.BYTES_PER_KRC_REAL).ToArray(), 0)
-            );
+            var data = encoding.GetString(bytes);
+            var index = data.LastIndexOf(message);
+            if (index == -1)
+                return null;
+            return bytes.Skip(index + message.Length).Take(40).ToArray();
+            //data = data.Substring(index).Replace(message, "");
+
+            //return Encoding.ASCII.GetBytes(data);
         }
-        // Получение индекса позиции камеры;
-        private int GetCIndex(byte[] data)
-        {
-            int result = -1;
 
-            for (int i = 0; i < data.Length - 1; i++)
+        private Frame ParseFrameFromBytes(byte[] bytes)
+        {
+            if (bytes == null)
+                return null;
+            float[] xyzabc = new float[6];
+            for (int i = 0; i < 6; i++)
             {
-                if (data[i] == 'C' && data[i + 1] == 'a')
-                {
-                    result = i;
-                    break;
-                }
+                xyzabc[i] = floatConversion(bytes.Skip(i * 4).Take(4).ToArray());
             }
 
-            return result;
+            return new Frame(xyzabc[0], xyzabc[1], xyzabc[2], xyzabc[3], xyzabc[4], xyzabc[5]);
+        }
+
+        private float ParseDistance(byte[] bytes)
+        {
+            if (bytes == null)
+                return -1;
+            return floatConversion(bytes) * 500 + 125;
+        }
+
+        public float floatConversion(byte[] bytes)
+        {
+            //if (BitConverter.IsLittleEndian)
+            //{
+            //    Array.Reverse(bytes); // Convert big endian to little endian
+            //}
+            float myFloat = BitConverter.ToSingle(bytes, 0);
+            return myFloat;
+        }
+
+        public void MoveCortesian(Frame f, int iTool = 1, int speed = 10, int iBase = 0)
+        {
+            int MoveType = 1;
+
+            System.Console.WriteLine("xml start");
+            string arryByte = "<RobotCommand>" +
+                        "<MoveCartesian>" +
+                            "<Frame X=\"" + f.X + "\" Y=\"" + f.Y + "\" Z=\"" + f.Z + "\" A=\"" + f.A + "\" B=\"" + f.B + "\" C=\"" + f.C + "\" />" +
+                            "<Tool>" + iTool + "</Tool>" +
+                            "<MoveType>" + MoveType + "</MoveType>" +
+                            "<Speed>" + speed + "</Speed>" +
+                            "<Base>" + iBase + "</Base>" +
+                         "</MoveCartesian>" +
+                        "</RobotCommand>";
+            arryByte = arryByte.Replace(',', '.');
+
+            System.Console.WriteLine(arryByte);
+            System.Console.WriteLine("xml end");
+
+            tcpClient.Client.Send(Encoding.ASCII.GetBytes(arryByte));
         }
     }
 }

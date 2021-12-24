@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Emgu.CV;
@@ -18,18 +19,18 @@ namespace CourseworkWinforms
         {
             Camera = new Cam();
             Camera = Camera.Connect(identifier);
-            
-            Dictionary<string, Feature> featureList = Camera.GetFeatureList();
-
+           
             Camera.f.PixelFormat.Value = PixelFormat.BGR8;
-            Camera.f.Width.Value = 1920;
-            Camera.f.Height.Value = 1280;
             Camera.f.ExposureAuto.Value = ExposureAuto.Off;
-            Camera.f.ExposureTime.Value = 50000;
-            
-            //f.BinningHorizontal.Value = 1; //уменьшение разрешения в 4 раза ???
-            //f.BinningVertical.Value = 1; //уменьшение разрешения в 4 раза
-            //Camera.f.Gain.Value = 17.64;
+            Camera.f.ExposureTime.Value = 20000;
+
+            double k = 0.5;
+
+            Camera.f.Width.Value = (int)(3072 * k);
+            Camera.f.Height.Value = (int)(2048 * k);
+            Camera.f.BinningHorizontal.Value = 4; //уменьшение разрешения в 4 раза ???
+            Camera.f.BinningVertical.Value = 4; //уменьшение разрешения в 4 раза
+            Camera.f.Gain.Value = 20;
             
             Camera.ImageBufferCount = 10; // set the size of the buffer queue to 10
             Camera.ImageBufferCycleCount = 1; // sets the cycle count to 1 

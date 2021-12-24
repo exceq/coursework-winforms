@@ -3,7 +3,6 @@ using NeoAPI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,27 +22,50 @@ namespace CourseworkWinforms
             InitializeComponent();
             AdjustButtons();
             ZoomPictureBox();
-            //toolStripButtonConnectBaumer_Click(null, null); // запуск камеры
-            client = new Client();
+
+            ConnectToBaumer(); // Подключение к камере
+            ConnectToServer(); // Подключение к серверу
         }
+
+        private void ConnectToServer()
+        {
+            try
+            {
+                client = new Client();
+                toolStripButtonConnectServer.Enabled = false;
+                //RefreshCumPosition();
+            }
+            catch (Exception e)
+            {
+                toolStripButtonConnectServer.Enabled = true;
+                MessageBox.Show(e.Message + "\n\nПодробности:\n" + e,
+                    "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        //private void RefreshCumPosition()
+        //{
+        //    Task.Run(() => {
+        //        while (client.CheckConnect())
+        //        {
+        //            if (PositionData.CameraPosition != null)
+        //                labelCameraPosition.Text = PositionData.CameraPosition.ToString();
+        //            if (PositionData.FlangePosition != null)
+        //                labelFlangePosition.Text = PositionData.FlangePosition.ToString();
+        //            Thread.Sleep(500);
+        //        }
+        //        toolStripButtonConnectServer.Enabled = true;
+        //    });
+        //}
 
         #region Подключение к камерам
 
         private void toolStripButtonConnectBaumer_Click(object sender, EventArgs e)
         {
-            firstCrop = true;
-            try
-            {
-                ConnectToBaumer();
-            }
-            catch (NeoAPI.NotConnectedException exception)
-            {
-                MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + exception,
-                    "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ConnectToBaumer();
         }
 
-        void ConnectToBaumerAsync()
+        private void ConnectToBaumerAsync()
         {
             CameraProperties prop = XmlReader.GetCameraProperties(Resources.camera_properties);
             baumer = new BaumerCamera(prop);
@@ -51,19 +73,37 @@ namespace CourseworkWinforms
 
         private async void ConnectToBaumer(string id = "")
         {
+            firstCrop = true;
             toolStripLabelCameraName.Text = "Подключение...";
             toolStripButtonConnectBaumer.Enabled = false;
-            await Task.Run(ConnectToBaumerAsync);
 
-            toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
-            toolStripButtonConnectBaumer.Enabled = !baumer.Camera.IsConnected;
-
-            StartGettingImagesBaumer();
+            try
+            {
+                await Task.Run(ConnectToBaumerAsync);
+                StartGettingImagesBaumer();
+                toolStripLabelCameraName.Text = baumer.Camera.f.DeviceModelName.ValueString;
+            }
+            catch (NotConnectedException e)
+            {
+                MessageBox.Show("Не удалось подключиться к баумерской камере.\n\nПодробности:\n" + e,
+                    "NotConnectedException", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } 
+            catch (NoAccessException e)
+            {
+                MessageBox.Show("Не удалось подключиться к баумерской камере.\nКамера уже используется.\n\nПодробности:\n" + e,
+                    "NoAccessException", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            toolStripButtonConnectBaumer.Enabled = baumer?.Camera == null || !baumer.Camera.IsConnected;
         }
 
         private Bitmap GetImageAsync()
         {
             var neoImg = baumer.Camera.GetImage();
+            if (neoImg.IsEmpty)
+            {
+                neoImg.Dispose();
+                return null;
+            }
             Bitmap bitmap = BaumerCamera.ConvertNeoImageToBitmap(neoImg);
             Thread.Sleep(40);
             neoImg.Dispose();
@@ -74,15 +114,20 @@ namespace CourseworkWinforms
         {
             for (int i = 0; baumer.Camera.IsConnected; i++)
             {
-                try
-                {
+                try{
+
                     Console.WriteLine("Image " + i + " Start");
-                    Bitmap b = await Task.Run(GetImageAsync);
-                    SetImageToPictureBox(b);
+                    var b = await Task.Run(GetImageAsync);
+                    if (b != null)
+                        SetImageToPictureBox(b);
                 }
-                catch
+                catch (Exception e)
                 {
-                    //ignored
+                    Console.WriteLine("Image " + i + " Error !!!!!!!!!!");
+                    Console.WriteLine("Image " + i + " Error !!!!!!!!!!");
+                    Console.WriteLine("Image " + i + " Error !!!!!!!!!!");
+                    //MessageBox.Show(e.Message + "Ошибка получения изображения\n",
+                    //"Ошабка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -255,40 +300,128 @@ namespace CourseworkWinforms
 
         private void buttonGo_Click(object sender, EventArgs e)
         {
+            //MoveByPixelLinesOfSelectedPoints();
+            MoveCheat();
+        }
+
+        private async void MoveCheat()
+        {
+            Frame[] direcions = new Frame[]
+            {
+                new Frame(499.33f, 91.81f, 733.68f, 175.09f, -8.56f, 171.88f),
+                new Frame(499.33f, 91.81f, 733.68f, 174.81f, 2.88f, 173.35f),
+                new Frame(499.33f, 91.81f, 733.68f, 173.75f, 18.17f, 169.41f)
+            };
+            Frame[] positions = new Frame[]
+            {
+                new Frame(429.84f, 162.19f, 276.50f, 179.62f, 2.13f, -179.28f),
+                new Frame(521.55f, 139.53f, 276.49f, 179.62f, 2.13f, -179.28f),
+                new Frame(652.17f, 161.94f, 277.12f, 179.62f, 4.11f, -179.29f)
+            };
+
+            foreach (var d in direcions)
+            {
+                await Task.Run(() =>
+                {
+                    client.MoveCortesian(d, iTool: 1);
+                    Thread.Sleep(5000);
+                });
+            }
+            foreach (var p in positions)
+            {
+                await Task.Run(() =>
+                {
+                    client.MoveCortesian(p, iTool: 13);
+                    Thread.Sleep(12000);
+                });
+            }
+        }
+
+        private async void MoveByPixelLinesOfSelectedPoints()
+        {
             try
             {
-                PositionData positionData = client.Read1();
+                //StringBuilder sb = new StringBuilder();
 
-                IEnumerable<Frame> newCoords =
-                    GetSelectedPoints().Select(point => CalculateNewCoordinate(point, positionData));
-                StringBuilder sb = new StringBuilder();
+                var newCoordinates = new List<Frame>();
+                var positionData = new PositionData();
+                ReadWhileNull(positionData);
+                var cumPos = positionData.CameraPosition;
+                var flanPos = positionData.FlangePosition;
 
-                foreach (var p in newCoords)
+                foreach (var point in GetSelectedPoints())
                 {
-                    sb.Append(p).Append("\n\n");
+                    var newPoint = await Task.Run(() =>
+                    {
+                        Frame direction = CameraMath.CalculatePixelLineFromCameraProperties(baumer.CameraProperties,
+                            cumPos,
+                            flanPos,
+                            point);
+                        client.MoveCortesian(direction);
+                        Thread.Sleep(5000);
+                        var dist = ReadDistanceWhile();
+                        Frame newPoint3D = CameraMath.CalculateNewCoordinate(direction, positionData.RangeFinderDistanceIntern);
+                        return newPoint3D;
+                    });
+                    newCoordinates.Add(newPoint);
+                    //sb.Append(newPoint3D).Append("\n\n");
                 }
 
                 labelCameraPosition.Text = "Позиция камеры: \n" + positionData.CameraPosition;
                 labelFlangePosition.Text = "Позиция Фланца: \n" + positionData.FlangePosition;
-                // TODO сделать обновление позиции камеры при передвижении
+                labelOsi.Text = "Расстрояние с дальномера: \n" + positionData.RangeFinderDistanceIntern;
 
+                foreach (var newFrame in newCoordinates)
+                {
+                    client.MoveCortesian(newFrame, iTool: 13);
+                }
 
-                // TODO отправить манипулятору команду на передвижение по заданным точкам  
-                // Постоянно считывать данные, если предыдущая и текущая точка равны,
-                // это значит, что манипулятор достиг точки и можно отправлять следующую
-
-                // foreach (var newFrame in newCoords)
-                // {
-                //     client.Send(newFrame); // idk
-                // }
-
-                MessageBox.Show(sb.ToString(), "Новые координаты", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show(sb.ToString(), "Новые координаты", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception exception)
             {
                 MessageBox.Show("Ошибка\n\n" + exception, "Dev", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
+
+            //client.MoveCortesian(new Frame(500, 20, 600, 100, 0, 160));
+        }
+
+        private float ReadDistanceWhile()
+        {
+            if (client == null || !client.CheckConnect())
+                throw new Exception("Подключение к серверу отсутствует.");
+            float dist = -1;
+            while (dist == -1)
+            {
+                dist = client.ReadDistance();
+            }
+            return dist;
+        }
+
+        private void ReadWhileNull(PositionData positionData)
+        {
+            if (client == null || !client.CheckConnect())
+                throw new Exception("Подключение к серверу отсутствует.");
+            while  (positionData.CameraPosition == null || 
+                    positionData.FlangePosition == null ||
+                    positionData.RangeFinderDistanceIntern == -1)
+            {
+                var newPosData = client.Read();
+                if (newPosData.CameraPosition != null && positionData.CameraPosition == null)
+                    positionData.CameraPosition = newPosData.CameraPosition;
+
+                if (newPosData.FlangePosition != null && positionData.FlangePosition == null)
+                    positionData.FlangePosition = newPosData.FlangePosition;
+
+                if (newPosData.RangeFinderDistanceIntern != -1 && positionData.RangeFinderDistanceIntern == -1)
+                    positionData.RangeFinderDistanceIntern = newPosData.RangeFinderDistanceIntern;
+            }
+        }
+
+        private void toolStripButtonConnectServer_Click(object sender, EventArgs e)
+        {
+            ConnectToServer();
         }
 
         #endregion
@@ -338,15 +471,6 @@ namespace CourseworkWinforms
             item1.Focused = true;
             item1.Selected = true;
             listView1.Focus();
-        }
-
-        private Frame CalculateNewCoordinate(Point point, PositionData positionData)
-        {
-            Frame direction = CameraMath.CalculatePixelLineFromCameraProperties(baumer.CameraProperties,
-                positionData.CameraPosition,
-                positionData.FlangePosition,
-                point);
-            return CameraMath.CalculateNewCoordinate(direction, positionData.RangeFinderDistanceIntern);
         }
     }
 }

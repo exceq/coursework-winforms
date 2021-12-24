@@ -31,6 +31,7 @@ namespace CourseworkWinforms
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CamsViewer));
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
@@ -59,6 +60,7 @@ namespace CourseworkWinforms
             this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonConnectServer = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.panel1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
@@ -353,7 +355,8 @@ namespace CourseworkWinforms
             this.toolStripLabel1,
             this.toolStripLabelCameraName,
             this.toolStripLabel2,
-            this.toolStripButtonConnectBaumer});
+            this.toolStripButtonConnectBaumer,
+            this.toolStripButtonConnectServer});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1056, 25);
@@ -408,6 +411,16 @@ namespace CourseworkWinforms
             this.toolStripButton2.Name = "toolStripButton2";
             this.toolStripButton2.Size = new System.Drawing.Size(23, 23);
             this.toolStripButton2.Text = "toolStripButton2";
+            // 
+            // toolStripButtonConnectServer
+            // 
+            this.toolStripButtonConnectServer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButtonConnectServer.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonConnectServer.Image")));
+            this.toolStripButtonConnectServer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonConnectServer.Name = "toolStripButtonConnectServer";
+            this.toolStripButtonConnectServer.Size = new System.Drawing.Size(185, 22);
+            this.toolStripButtonConnectServer.Text = "Подключиться к серверу";
+            this.toolStripButtonConnectServer.Click += new System.EventHandler(this.toolStripButtonConnectServer_Click);
             // 
             // CamsViewer
             // 
@@ -481,5 +494,6 @@ namespace CourseworkWinforms
         private System.Windows.Forms.Label labelOsi;
         private System.Windows.Forms.Label labelFlangePosition;
         private System.Windows.Forms.Label labelCameraPosition;
+        private System.Windows.Forms.ToolStripButton toolStripButtonConnectServer;
     }
 }

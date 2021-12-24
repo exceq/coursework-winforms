@@ -4,6 +4,7 @@
     {
         public Frame CameraPosition;
         public Frame FlangePosition;
-        public float RangeFinderDistanceIntern = 0f;
+        public Frame ToolPosition;
+        public float RangeFinderDistanceIntern = -1;
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace server_connect
+﻿namespace CourseworkWinforms
 {
     static class ConfiguratePositionData
     {
